@@ -52,6 +52,10 @@ Answer: Each weekly meeting based on the milestones, we will discuss the project
 *If team members do not pull their weight, the team will politely remind them of their duties.*  
 *If they continue to not pull their weight, then they will get another warning and a chance to start being more productive.*  
 
+**Answer:**
+**a:** If there is a conflict in our group, we will take a day or two to further discuss the issue and end up doing the conclusion which more people agree with.
+**b:** If someone is not contributing enough, we will call them out on not doing the work required for the group and try to come up with a way they can pick up the slack. If this doesn't work, bringing it up to the TA or professor would be the next step.
+
 ---
 
 # Roles  
