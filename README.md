@@ -21,7 +21,8 @@ Our weekly meeting will be Wednesday 5pm-6pm or 6pm-7pm.
 
 *Prior to 4/17: Meet together weekly to target project weakpoints/bugs and possibly visit office hours to get guidance if the progress feels weak.*  
 
-Answer: Each weekly meeting based on the milestones, we will discuss the project scope and tasks. After discussing we will split the work and work on respective branches, and then meet once more to code review. However during this week, we will discuss project ideas and finalize the brainstorming for the end product. We will heavily emphasize accessibility, sustainability, community, social impact for the public benefit. (10/1)The weeks of October will be weekly code reviews and work assignments for Milestone 3 and further Milestones.
+**Answer:**  
+Each weekly meeting based on the milestones, we will discuss the project scope and tasks. After discussing we will split the work and work on respective branches, and then meet once more to code review. However during this week, we will discuss project ideas and finalize the brainstorming for the end product. We will heavily emphasize accessibility, sustainability, community, social impact for the public benefit. (10/1)The weeks of October will be weekly code reviews and work assignments for Milestone 3 and further Milestones.
 
 ---
 
@@ -40,7 +41,7 @@ Answer: Each weekly meeting based on the milestones, we will discuss the project
 *Mauricio - itsperi*  
 *Our expected response time will be within 12 hours.*  
 
-**Answer:** 
+**Answer:**  
 Q3a: We will communicate via text and Discord. We will use Discord for weekly team meetings and text otherwise.
 Q3b: Man Nguyen: minhman180299
      Tommy Kang: esFoopy
