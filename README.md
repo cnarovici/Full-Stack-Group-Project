@@ -49,6 +49,7 @@ Q3b:
      Cosmin Narovici: netdino  
      Viet Ho: ImMQs  
 Q3c: 12-24 hour response times
+
 ---
 
 # Norms  
