@@ -5,6 +5,10 @@
 *We are available to meet online on weekends from 12pm-8pm (12-2pm Saturday + Sunday), as well as from 4pm-6pm on Fridays.*  
 *Our weekly meeting will be Thursday 11am-12pm.*  
 
+**Answer:** 
+We are available to meet online on weekends from 4pm-8pm, Tuesday and Thursday from 7pm-10pm, Mondays + Wednesday 5-8pm, and Friday 12pm-8pm.
+Our weekly meeting will be Wednesday 5pm-6pm or 6pm-7pm.
+
 ---
 
 # Timeline: Weekly Meeting Goals  
