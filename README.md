@@ -24,7 +24,7 @@ Our weekly meeting will be Wednesday 5pm-6pm or 6pm-7pm.
 **Answer:**
 Each weekly meeting based on the milestones, we will discuss the project scope and tasks. After discussing we will split the work and work on respective branches, and then meet once more to code review.
 However during this week, we will discuss project ideas and finalize the brainstorming for the end product. We will heavily emphasize accessibility, sustainability, community, social impact for the public benefit.
-(10/1)The weeks of October will be weekly code reviews and work assignments for Milestone 3. 
+(10/1)The weeks of October will be weekly code reviews and work assignments for Milestone 3
 
 ---
 
