@@ -92,9 +92,12 @@ Q3c: 12-24 hour response times
 
 # Track 2: Technology for Public Goods 
 
-**Problem 2:**
+**Problem 2:**  
+Students especially risiing seniors and juniors often attend career fairs and explore and walk around aimlessly hoping for jobs and applications. Those who do not have access to career fairs also mass apply for jobs
+and aimlessly and as a result both parties get inefficient returns on offers and interviews. They also tend to be underprepared, unsure of what these companies are looking for.
 
-**Solution 2:** 
+**Solution 2:**  
+A practical project is to build a simple app that allows job searchers and students register a profile with resumes and information, and then register for events that businesses and companies will post. Recommendations can also pop up based on user preferences and job interests, allowing for a more tailored job search with in person seminars allowing for better connection with said companies and better preparation. This allows for the student community and job searchers to also build, effectively building a stronger rising workforce that is informed and prepared. As a result the social impact improves as well, as companies will be met with a better upcoming workforce and greated talent pool, all of which is accessible through a convenient app by both parties. Both parties can conveniently reach out and interact, seeing if there is a "good fit." Lastly, due to a clean and simple app, students and businesses alike will continue to sustain the app usage as the in person connection and search can be set up quickly and remotely. 
 
 **Problem 3:** 
 
