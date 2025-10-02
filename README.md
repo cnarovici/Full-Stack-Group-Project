@@ -42,12 +42,14 @@ Each weekly meeting based on the milestones, we will discuss the project scope a
 *Our expected response time will be within 12 hours.*  
 
 **Answer:**  
-Q3a: We will communicate via text and Discord. We will use Discord for weekly team meetings and text otherwise.
-Q3b: Man Nguyen: minhman180299
-     Tommy Kang: esFoopy
-     Cosmin Narovici: netdino 
-     Viet Ho: ImMQs
+Q3a: We will communicate via text and Discord. We will use Discord for weekly team meetings and text otherwise.  
+Q3b:  
+     Man Nguyen: minhman180299  
+     Tommy Kang: esFoopy  
+     Cosmin Narovici: netdino  
+     Viet Ho: ImMQs  
 Q3c: 12-24 hour response times
+
 ---
 
 # Norms  
