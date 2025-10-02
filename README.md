@@ -91,6 +91,8 @@ Our group will divide the roles as follows:
 
 **Q6:** Which tech stacks will your group use? (Django + React or Flask + React)
 
+**Answer:**: We will use Flask + Reacj to develope our project.
+
 ---
 # Full Stack Group Project Track  
 ---
