@@ -121,7 +121,8 @@ A good approach to this would be a mobile app which would have a daily water int
 # Idea Finalization
 
 **From 5 project ideas you have above, please choose one of the project that you are going with for the rest of the semester. Explain why you are going with that project**  
-**Answer:**  We will be choosing to work on problem 2 which will address student needs with a job board. We are choosing this project because it is an issue that we all relate to and would like to try to create a solution that may be useful to ourselves and our fellow students that share the same struggles.
+**Answer:**  
+We will be choosing to work on problem 2 which will address student needs with a job board. We are choosing this project because it is an issue that we all relate to and would like to try to create a solution that may be useful to ourselves and our fellow students that share the same struggles.
 
 # Extra Credit (Only do this if you are done with Idea Finalization)
 
