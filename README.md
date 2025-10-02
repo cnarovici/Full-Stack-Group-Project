@@ -75,6 +75,16 @@ Q3c: 12-24 hour response times
 **Example:**  
 *Mauricio - Backend, Justin - Project Lead, Claudia - Frontend.*  
 
+**Answer:**
+Our group will divide the roles as follows:
+
+- Cosmin will serve as the Project Lead, overseeing coordination and overall project direction.
+
+- Tommy and Viet contribute to the Backend Development.
+
+- Man and Cosmin will handle the Frontend Development.
+
+
 ---
 
 # Tech Stacks
