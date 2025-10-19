@@ -1,1 +1,9 @@
-Your backend folder, must be done in Flask or Django
+Backend folder done in FLask:
+
+Requirements:
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-CORS==4.0.0
+PyJWT==2.8.0
+Werkzeug==3.0.1
+python-dotenv==1.0.0
