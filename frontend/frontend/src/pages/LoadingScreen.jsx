@@ -15,14 +15,6 @@ export default function LoadingScreen() {
             gap: "20px",
         },
 
-        square: {
-            width: "100px",
-            height: "100px",
-            borderRadius: "10%",  
-            border: "2.5px solid #5100ff",
-            display: "flex",
-
-        },
 
         squareImage: {
             width: "100%",         
@@ -57,11 +49,15 @@ export default function LoadingScreen() {
 
     return (
         <div style={styles.container}>
-            <div style={styles.square}>
-                <img src={myImage} alt="Logo" style={styles.squareImage} />
-            </div>
+            <button
+            className="image-glow-button"
+            onClick={() => alert("Logo button clicked!")}
+            >
+            <img src={myImage} alt="Logo" style={styles.squareImage} />
+            </button>
+
             
-            <h2 style={styles.slogan}>Connecting talent and opportunity - smarter</h2>
+            <h2 style={styles.slogan}>Connecting Talent and Opportunity - Smarter</h2>
             <div style={styles.buttons}>
                 <button className="loading-button" onClick={() => alert("Students options!")}>
                             For Students
