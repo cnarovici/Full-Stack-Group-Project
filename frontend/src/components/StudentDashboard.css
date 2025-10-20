@@ -1,0 +1,144 @@
+.dashboard-wrapper {
+    min-height: 100vh;
+    background-color: #f5f7fa;
+    padding: 40px 20px;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+}
+
+/* Header Section */
+.dashboard-header {
+    width: 750px;          
+    margin-bottom: 30px;
+    margin-right: 40px;
+}
+
+.dashboard-header h2 {
+    font-size: 26px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.dashboard-search {
+    width: 100%;            
+    padding: 12px 18px;
+    border: 1px solid #ccc;
+    border-radius: 30px;
+    font-size: 16px;
+    outline: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: border 0.2s ease;
+}
+.dashboard-search:focus {
+    border-color: #4a90e2;
+}
+
+/* Grid Section */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    width: 800px;     
+    margin: 0 auto;
+}
+
+/* Card Details */
+.dashboard-card {
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    padding: 50px 20px;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+}
+
+.dashboard-icon {
+    font-size: 40px;
+    color: #4a90e2;
+    margin-bottom: 15px;
+}
+
+.dashboard-card h3 {
+    font-size: 18px;
+    color: #333;
+}
+
+
+/* Recommended Section */
+.recommended-section {
+    width: 800px;     
+    margin: 20px auto 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.recommended-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 25px;
+}
+
+.recommended-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.event-container {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    padding: 20px 25px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.event-container:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 5px 14px rgba(0,0,0,0.12);
+}
+
+.event-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 10px;
+}
+
+.event-info {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 15px;
+}
+
+.event-details {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #555;
+    font-size: 14px;
+}
+
+.event-icon {
+    color: #e42525;
+    font-size: 16px;
+}
+
+.event-type-btn {
+    background-color: #98b7db;
+    color: rgb(33, 78, 191);
+    border: none;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: default;
+    font-weight: 500;
+}

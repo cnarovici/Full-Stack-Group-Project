@@ -1,0 +1,98 @@
+.dashboard-header {
+    width: 760px;
+    text-align: center;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px; 
+}
+
+/* Search Bar */
+.dashboard-search {
+    width: 100%;
+    padding: 12px 18px;
+    border: 1px solid #ccc;
+    border-radius: 30px;
+    font-size: 16px;
+    outline: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: border 0.2s ease;
+}
+
+/* Add New Event */
+.post-btn-container {
+    width: 100%;
+    display: flex;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+.post-event-btn {
+    width: 100%;
+    background-color: #f3f3f3;
+    color: rgb(123, 84, 215);
+    border: none;
+    border-radius: 30px;
+    padding: 14px 0; /* taller button */
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+.post-event-btn:hover {
+    background: linear-gradient(130deg, #5065dd, #9caff7, #a27fef);
+    color: #ffffff;
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(160, 127, 239, 0.3);
+}
+
+
+.post-event-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 6px rgba(160, 127, 239, 0.2);
+}
+
+/* Messages Section */
+.messages-section {
+    width: 800px;
+    margin: 30px auto 0;
+}
+
+.messages-slider {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scrollbar-width: thin;
+}
+
+.message-card {
+    flex: 0 0 250px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    padding: 16px 20px;
+    min-height: 110px;
+    transition: transform 0.2s ease;
+}
+
+.message-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 12px rgba(0,0,0,0.12);
+}
+
+.message-from {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+}
+
+.message-text {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.4;
+}
