@@ -6,7 +6,7 @@ const API_BASE_URL = 'http://localhost:5000/api';
 
 const LoginPage = ({ userType = 'student' }) => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState(userType); // Use prop for initial tab
+    const [activeTab, setActiveTab] = useState(userType);
     const [isLogin, setIsLogin] = useState(false);
     const [formData, setFormData] = useState({
         email: '',
@@ -22,7 +22,6 @@ const LoginPage = ({ userType = 'student' }) => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // Update activeTab when userType prop changes
     useEffect(() => {
         setActiveTab(userType);
     }, [userType]);
@@ -65,11 +64,9 @@ const LoginPage = ({ userType = 'student' }) => {
                 throw new Error(data.message || 'Login failed');
             }
 
-            // Store token and user info
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
 
-            // Redirect based on user type
             if (data.user.user_type === 'student') {
                 navigate('/student/dashboard');
             } else {
@@ -129,11 +126,9 @@ const LoginPage = ({ userType = 'student' }) => {
                 throw new Error(data.message || 'Registration failed');
             }
 
-            // Store token and user info
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
 
-            // Redirect based on user type
             if (activeTab === 'student') {
                 navigate('/student/dashboard');
             } else {
@@ -155,16 +150,11 @@ const LoginPage = ({ userType = 'student' }) => {
         }
     };
 
-    const handleBackToHome = () => {
-        navigate('/');
-    };
-
     return (
         <div className="login-container">
             <div className="login-card">
-                {/* Back button */}
                 <button 
-                    onClick={handleBackToHome}
+                    onClick={() => navigate('/')}
                     style={{
                         position: 'absolute',
                         top: '15px',
@@ -173,13 +163,13 @@ const LoginPage = ({ userType = 'student' }) => {
                         border: 'none',
                         fontSize: '24px',
                         cursor: 'pointer',
-                        color: '#667eea'
+                        color: '#667eea',
+                        zIndex: 10
                     }}
                 >
                     ← Back
                 </button>
 
-                {/* Tab Navigation - Only show during registration */}
                 {!isLogin && (
                     <div className="tabs">
                         <button
@@ -197,7 +187,6 @@ const LoginPage = ({ userType = 'student' }) => {
                     </div>
                 )}
 
-                {/* Form */}
                 <form className="login-form" onSubmit={handleSubmit}>
                     <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>
                         {isLogin ? 'Login' : `Create ${activeTab === 'student' ? 'Student' : 'Employer'} Account`}
@@ -217,7 +206,6 @@ const LoginPage = ({ userType = 'student' }) => {
                         </div>
                     )}
 
-                    {/* Email */}
                     <div className="form-group">
                         <label className="form-label">Email</label>
                         <input
@@ -231,7 +219,6 @@ const LoginPage = ({ userType = 'student' }) => {
                         />
                     </div>
 
-                    {/* Password */}
                     <div className="form-group">
                         <label className="form-label">Password</label>
                         <input
@@ -245,7 +232,6 @@ const LoginPage = ({ userType = 'student' }) => {
                         />
                     </div>
 
-                    {/* Registration-only fields */}
                     {!isLogin && (
                         <>
                             <div className="form-group">
@@ -294,26 +280,12 @@ const LoginPage = ({ userType = 'student' }) => {
                                     </div>
 
                                     <div className="form-group">
-                                        <label className="form-label">Upload Resume (Optional)</label>
-                                        <input
-                                            type="file"
-                                            name="resume"
-                                            className="form-input file-input"
-                                            accept=".pdf,.doc,.docx"
-                                            onChange={handleFileChange}
-                                        />
-                                        {formData.resume && (
-                                            <span className="file-name">📄 {formData.resume.name}</span>
-                                        )}
-                                    </div>
-
-                                    <div className="form-group">
                                         <label className="form-label">Skills (comma-separated)</label>
                                         <input
                                             type="text"
                                             name="skills"
                                             className="form-input"
-                                            placeholder="Python, JavaScript, React, Machine Learning"
+                                            placeholder="Python, JavaScript, React"
                                             value={formData.skills}
                                             onChange={handleInputChange}
                                         />
@@ -344,7 +316,7 @@ const LoginPage = ({ userType = 'student' }) => {
                                     placeholder={
                                         activeTab === 'student'
                                             ? 'Software Engineering, Data Science'
-                                            : 'Brief description of your company...'
+                                            : 'Brief description...'
                                     }
                                     value={formData.jobPreferencesOrDescription}
                                     onChange={handleInputChange}

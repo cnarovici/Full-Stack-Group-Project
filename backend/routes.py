@@ -75,11 +75,15 @@ def register():
             job_preferences=','.join(data.get('job_preferences', []))
         )
         
+        db.session.add(profile)
+        db.session.flush()  # ✅ CRITICAL: Get profile.id before adding skills
+        
         # Add skills
         skills = data.get('skills', [])
         for skill_name in skills:
-            skill = StudentSkill(student_id=profile.id, skill_name=skill_name)
-            db.session.add(skill)
+            if skill_name:  # Only add non-empty skills
+                skill = StudentSkill(student_id=profile.id, skill_name=skill_name)
+                db.session.add(skill)
             
     else:  # employer
         profile = EmployerProfile(
@@ -89,8 +93,8 @@ def register():
             description=data.get('description', ''),
             website=data.get('website', '')
         )
+        db.session.add(profile)
     
-    db.session.add(profile)
     db.session.commit()
     
     # Rebuild tries if employer (for company search)
@@ -102,6 +106,10 @@ def register():
         'user_id': user.id,
         'exp': datetime.utcnow() + timedelta(days=30)
     }, SECRET_KEY, algorithm='HS256')
+    
+    # Ensure token is string (for newer PyJWT versions)
+    if isinstance(token, bytes):
+        token = token.decode('utf-8')
     
     return jsonify({
         'message': 'User created successfully',

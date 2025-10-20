@@ -69,6 +69,8 @@ skill_trie = Trie()
 
 def build_event_trie():
     """Build/rebuild the event search trie"""
+    from models import Event  # ✅ Import here to avoid circular import
+    
     global event_trie
     event_trie = Trie()
     
@@ -90,6 +92,8 @@ def build_event_trie():
 
 def build_company_trie():
     """Build/rebuild the company search trie"""
+    from models import EmployerProfile  # ✅ Import here to avoid circular import
+    
     global company_trie
     company_trie = Trie()
     
@@ -106,6 +110,8 @@ def build_company_trie():
 
 def build_skill_trie():
     """Build/rebuild the skill search trie"""
+    from models import StudentSkill  # ✅ Import here to avoid circular import
+    
     global skill_trie
     skill_trie = Trie()
     
