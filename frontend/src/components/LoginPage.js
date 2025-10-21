@@ -153,7 +153,7 @@ const LoginPage = ({ userType = 'student' }) => {
     return (
         <div className="login-container">
             <div className="login-card">
-                <button 
+                <button
                     onClick={() => navigate('/')}
                     style={{
                         position: 'absolute',

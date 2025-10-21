@@ -6,6 +6,7 @@ import LoginPage from './components/LoginPage';
 import StudentProfile from './components/StudentProfile';
 import EmployerDashboard from './components/EmployerDashboard';
 import StudentDashboard from './components/StudentDashboard';
+import EventDetail from './components/EventDetails';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/student/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
         <Route path="/student/profile" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
         <Route path="/employer/dashboard" element={<ProtectedRoute><EmployerDashboard /></ProtectedRoute>} />
+        <Route path="/event/detail" element={<EventDetail />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
@@ -25,11 +27,9 @@ function App() {
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
-  
   if (!token) {
     return <Navigate to="/" />;
   }
-  
   return children;
 }
 
