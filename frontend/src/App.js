@@ -4,9 +4,12 @@ import './App.css';
 import LoadingScreen from './components/LoadingScreen';
 import LoginPage from './components/LoginPage';
 import StudentProfile from './components/StudentProfile';
+import StudentEditProfile from './components/StudentEditProfile';
+import StudentUpdateResume from './components/StudentUpdateResume';
+import EmployerProfile from './components/EmployerProfile';
+import EmployerEditProfile from './components/EmployerEditProfile';
 import EmployerDashboard from './components/EmployerDashboard';
 import StudentDashboard from './components/StudentDashboard';
-import EventDetail from './components/EventDetails';
 
 function App() {
   return (
@@ -17,19 +20,15 @@ function App() {
         <Route path="/employer/auth" element={<LoginPage userType="employer" />} />
         <Route path="/student/dashboard" element={<StudentDashboard />} />
         <Route path="/student/profile" element={<StudentProfile />} />
+        <Route path="/student/edit-profile" element={<StudentEditProfile />} />
+        <Route path="/student/update-resume" element={<StudentUpdateResume />} />
         <Route path="/employer/dashboard" element={<EmployerDashboard />} />
+        <Route path="/employer/profile" element={<EmployerProfile />} />
+        <Route path="/employer/edit-profile" element={<EmployerEditProfile />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
-}
-
-function ProtectedRoute({ children }) {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    return <Navigate to="/" />;
-  }
-  return children;
 }
 
 export default App;

@@ -1,3 +1,13 @@
+.dashboard-wrapper {
+    min-height: 100vh;
+    background-color: #f5f7fa;
+    padding: 40px 20px;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+}
+
 .dashboard-header {
     width: 760px;
     text-align: center;
@@ -20,6 +30,27 @@
     transition: border 0.2s ease;
 }
 
+/* View Profile Button */
+.view-profile-btn {
+    width: 100%;
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    border-radius: 30px;
+    padding: 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.view-profile-btn:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}
+
 /* Add New Event */
 .post-btn-container {
     width: 100%;
@@ -28,20 +59,20 @@
     margin-bottom: 20px;
     justify-content: center;
 }
+
 .post-event-btn {
     width: 100%;
     background-color: #f3f3f3;
     color: rgb(123, 84, 215);
     border: none;
     border-radius: 30px;
-    padding: 14px 0; /* taller button */
+    padding: 14px 0;
     font-size: 17px;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.15s ease;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
 }
-
 
 .post-event-btn:hover {
     background: linear-gradient(130deg, #5065dd, #9caff7, #a27fef);
@@ -50,10 +81,80 @@
     box-shadow: 0 4px 10px rgba(160, 127, 239, 0.3);
 }
 
-
 .post-event-btn:active {
     transform: scale(0.98);
     box-shadow: 0 2px 6px rgba(160, 127, 239, 0.2);
+}
+
+/* Recommended Section */
+.recommended-section {
+    width: 800px;     
+    margin: 20px auto 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.recommended-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 25px;
+}
+
+.recommended-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.event-container {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    padding: 20px 25px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.event-container:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 5px 14px rgba(0,0,0,0.12);
+}
+
+.event-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 10px;
+}
+
+.event-info {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 15px;
+}
+
+.event-details {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #555;
+    font-size: 14px;
+}
+
+.event-icon {
+    color: #667eea;
+    font-size: 16px;
+}
+
+.event-type-btn {
+    background-color: #98b7db;
+    color: rgb(33, 78, 191);
+    border: none;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: default;
+    font-weight: 500;
 }
 
 /* Messages Section */
@@ -95,4 +196,13 @@
     color: #555;
     font-size: 14px;
     line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard-header,
+    .recommended-section,
+    .messages-section {
+        width: 100%;
+    }
 }

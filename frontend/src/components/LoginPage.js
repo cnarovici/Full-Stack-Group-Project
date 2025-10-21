@@ -17,7 +17,8 @@ const LoginPage = ({ userType = 'student' }) => {
         resume: null,
         jobPreferencesOrDescription: '',
         website: '',
-        skills: ''
+        skills: '',
+        location: ''  // ✅ ADDED
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -106,10 +107,12 @@ const LoginPage = ({ userType = 'student' }) => {
                     .filter(skill => skill !== '');
                 registrationData.resume_url = '';
             } else {
+                // ✅ EMPLOYER REGISTRATION
                 registrationData.company_name = formData.fullName;
                 registrationData.industry = formData.schoolOrCompany;
                 registrationData.description = formData.jobPreferencesOrDescription;
                 registrationData.website = formData.website;
+                registrationData.location = formData.location || '';  // ✅ ADDED
             }
 
             const response = await fetch(`${API_BASE_URL}/auth/register`, {
@@ -292,17 +295,32 @@ const LoginPage = ({ userType = 'student' }) => {
                                     </div>
                                 </>
                             ) : (
-                                <div className="form-group">
-                                    <label className="form-label">Website</label>
-                                    <input
-                                        type="url"
-                                        name="website"
-                                        className="form-input"
-                                        placeholder="https://yourcompany.com"
-                                        value={formData.website}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
+                                <>
+                                    {/* ✅ NEW LOCATION FIELD FOR EMPLOYERS */}
+                                    <div className="form-group">
+                                        <label className="form-label">Location</label>
+                                        <input
+                                            type="text"
+                                            name="location"
+                                            className="form-input"
+                                            placeholder="San Francisco, CA"
+                                            value={formData.location}
+                                            onChange={handleInputChange}
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">Website</label>
+                                        <input
+                                            type="url"
+                                            name="website"
+                                            className="form-input"
+                                            placeholder="https://yourcompany.com"
+                                            value={formData.website}
+                                            onChange={handleInputChange}
+                                        />
+                                    </div>
+                                </>
                             )}
 
                             <div className="form-group">

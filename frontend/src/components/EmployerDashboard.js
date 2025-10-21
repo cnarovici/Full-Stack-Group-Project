@@ -28,7 +28,7 @@ const EmployerDashboard = () => {
     ];
 
     const messages = [
-        { from: "John Tran", text: "Hello! I’m interested in your Software Engineering event." },
+        { from: "John Tran", text: "Hello! I'm interested in your Software Engineering event." },
         { from: "Emma Lee", text: "Is there a resume submission link for the AI event?" },
         { from: "Carlos M.", text: "Can I still register for the internship fair?" },
         { from: "Maya K.", text: "Thank you for hosting such a great session!" },
@@ -44,6 +44,15 @@ const EmployerDashboard = () => {
                     className="dashboard-search"
                     readOnly
                 />
+                
+                {/* View Profile Button */}
+                <button 
+                    className="view-profile-btn"
+                    onClick={() => navigate('/employer/profile')}
+                >
+                    View Profile
+                </button>
+
                 <div className="post-btn-container">
                     <button
                         className="post-event-btn"

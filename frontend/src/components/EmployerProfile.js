@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './EmployerProfile.css';
 
+const API_BASE_URL = 'http://localhost:5000/api';
+
 const EmployerProfile = () => {
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [profile, setProfile] = useState(null);
     const [isEditingOverview, setIsEditingOverview] = useState(false);
-    const [companyData, setCompanyData] = useState({
-        name: 'TechCorp Inc.',
-        industry: 'Technology',
-        location: 'San Francisco, CA',
-        overview: 'TechCorp is a leading technology company specializing in cloud infrastructure and enterprise solutions. We\'re looking for passionate individuals to join our growing team.',
-        website: 'www.techcorp.com',
-        email: 'careers@techcorp.com'
-    });
+    const [overviewText, setOverviewText] = useState('');
 
     const [postedEvents] = useState([
         {
@@ -67,32 +67,154 @@ const EmployerProfile = () => {
         }
     ]);
 
-    const handleOverviewEdit = () => {
+    useEffect(() => {
+        fetchProfile();
+    }, []);
+
+    const fetchProfile = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                navigate('/');
+                return;
+            }
+
+            const response = await fetch(`${API_BASE_URL}/profile/employer`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch profile');
+            }
+
+            setProfile(data);
+            setOverviewText(data.description || '');
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleOverviewEdit = async () => {
+        if (isEditingOverview) {
+            // Save the changes
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE_URL}/profile/employer`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        description: overviewText
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Failed to update profile');
+                }
+
+                setProfile(prev => ({ ...prev, description: overviewText }));
+            } catch (err) {
+                alert('Error updating profile: ' + err.message);
+            }
+        }
         setIsEditingOverview(!isEditingOverview);
     };
 
     const handleOverviewChange = (e) => {
-        setCompanyData(prev => ({
-            ...prev,
-            overview: e.target.value
-        }));
+        setOverviewText(e.target.value);
     };
 
     const handleViewApplicants = (eventId) => {
         console.log(`Viewing applicants for event ${eventId}`);
-        // Add navigation logic here
         alert(`Navigating to applicants for event ${eventId}`);
     };
 
     const handleContactStudent = (studentId) => {
         console.log(`Contacting student ${studentId}`);
-        // Add messaging logic here
         alert(`Opening chat with student ${studentId}`);
     };
 
     const getInitials = (name) => {
-        return name.split(' ').map(n => n[0]).join('');
+        if (!name) return 'C';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase();
     };
+
+    if (loading) {
+        return (
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                fontSize: '24px'
+            }}>
+                Loading...
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                fontSize: '24px',
+                padding: '20px',
+                textAlign: 'center'
+            }}>
+                <p>Error: {error}</p>
+                <button 
+                    onClick={() => navigate('/employer/dashboard')}
+                    style={{
+                        marginTop: '20px',
+                        padding: '12px 24px',
+                        background: 'white',
+                        color: '#667eea',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                    }}
+                >
+                    Back to Dashboard
+                </button>
+            </div>
+        );
+    }
+
+    if (!profile) {
+        return (
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                fontSize: '24px'
+            }}>
+                No profile found
+            </div>
+        );
+    }
 
     return (
         <div className="profile-container">
@@ -100,15 +222,15 @@ const EmployerProfile = () => {
                 {/* Profile Header */}
                 <div className="profile-header">
                     <div className="profile-avatar">
-                        {getInitials(companyData.name)}
+                        {getInitials(profile.company_name)}
                     </div>
-                    <div className="profile-name">{companyData.name}</div>
+                    <div className="profile-name">{profile.company_name}</div>
                     <div className="profile-subtitle">
-                        {companyData.industry} • {companyData.location}
+                        {profile.industry} • {profile.location || 'Location not set'}
                     </div>
                     <div className="profile-contact-info">
-                        <span>🌐 {companyData.website}</span>
-                        <span>📧 {companyData.email}</span>
+                        {profile.website && <span>🌐 {profile.website}</span>}
+                        <span>✉️ {profile.user?.email || 'Email not available'}</span>
                     </div>
                 </div>
 
@@ -123,13 +245,37 @@ const EmployerProfile = () => {
                     {isEditingOverview ? (
                         <textarea
                             className="overview-textarea"
-                            value={companyData.overview}
+                            value={overviewText}
                             onChange={handleOverviewChange}
                             rows="5"
+                            placeholder="Tell students about your company..."
                         />
                     ) : (
-                        <p className="overview-text">{companyData.overview}</p>
+                        <p className="overview-text">
+                            {profile.description || 'No company description available. Click Edit to add one.'}
+                        </p>
                     )}
+                </div>
+
+                {/* Quick Actions */}
+                <div className="profile-section">
+                    <div className="section-header">
+                        <h3 className="section-title">Quick Actions</h3>
+                    </div>
+                    <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                        <button 
+                            className="add-btn"
+                            onClick={() => navigate('/employer/edit-profile')}
+                        >
+                            Edit Profile
+                        </button>
+                        <button 
+                            className="add-btn"
+                            onClick={() => navigate('/employer/dashboard')}
+                        >
+                            Back to Dashboard
+                        </button>
+                    </div>
                 </div>
 
                 {/* Posted Events Section */}
@@ -204,7 +350,7 @@ const EmployerProfile = () => {
                     </div>
                 </div>
 
-                {/* Stats Section (Optional) */}
+                {/* Stats Section */}
                 <div className="profile-section">
                     <h3 className="section-title">Quick Stats</h3>
                     <div className="stats-grid">

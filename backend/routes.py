@@ -76,7 +76,7 @@ def register():
         )
         
         db.session.add(profile)
-        db.session.flush()  # ✅ CRITICAL: Get profile.id before adding skills
+        db.session.flush()  # Get profile.id before adding skills
         
         # Add skills
         skills = data.get('skills', [])
@@ -91,7 +91,8 @@ def register():
             company_name=data.get('company_name', ''),
             industry=data.get('industry', ''),
             description=data.get('description', ''),
-            website=data.get('website', '')
+            website=data.get('website', ''),
+            location=data.get('location', '')  # ✅ ADD THIS LINE
         )
         db.session.add(profile)
     
@@ -210,7 +211,6 @@ def get_employer_profile(employer_id):
     
     return jsonify(profile_data), 200
 
-
 @api.route('/profile/employer', methods=['GET', 'PUT'])
 @token_required
 def manage_employer_profile(current_user):
@@ -235,8 +235,8 @@ def manage_employer_profile(current_user):
         profile.description = data['description']
     if 'website' in data:
         profile.website = data['website']
-    if 'logo_url' in data:
-        profile.logo_url = data['logo_url']
+    if 'location' in data:  # ✅ ADD THIS
+        profile.location = data['location']
     
     db.session.commit()
     

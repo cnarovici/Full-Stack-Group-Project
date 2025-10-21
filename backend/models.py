@@ -70,6 +70,7 @@ class EmployerProfile(db.Model):
     description = db.Column(db.Text)
     website = db.Column(db.String(500))
     logo_url = db.Column(db.String(500))
+    location = db.Column(db.String(200))  # ✅ ADD THIS LINE
     
     # Relationships
     events = db.relationship('Event', backref='employer', cascade='all, delete-orphan')
@@ -82,7 +83,8 @@ class EmployerProfile(db.Model):
             'industry': self.industry,
             'description': self.description,
             'website': self.website,
-            'logo_url': self.logo_url
+            'logo_url': self.logo_url,
+            'location': self.location  # ✅ ADD THIS LINE
         }
 
 
