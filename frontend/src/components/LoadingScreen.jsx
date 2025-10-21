@@ -50,65 +50,85 @@ export default function LoadingScreen() {
         button: {
             padding: "15px 40px",
             borderRadius: "12px",
-            border: "none",
+            //border: "none",
             backgroundColor: "white",
             color: "#667eea",
             cursor: "pointer",
-            fontSize: "1.1rem",
-            fontWeight: "600",
-            transition: "all 0.3s ease",
-            minWidth: "200px",
+            //fontSize: "1.1rem",
+            //fontWeight: "600",
+            //transition: "all 0.3s ease",
+            //minWidth: "200px", 
+            width: "250px", 
+            border: "2px solid #5100ff",        
+            fontFamily: "Arial sans_serif",
+            fontSize: "1.2rem",
+            fontWeight: "500", 
+            transition: "background 0.3s ease, color 0.3s ease, transform 0.2s ease",
+            textAlign: "center", 
         },
+    
+    };
+
+    // Hover and active handlers
+    const handleMouseEnter = (e) => {
+        e.target.style.background =
+        "linear-gradient(130deg, #cec1e7, #ad91ea, #a27fef)";
+        e.target.style.color = "#ffffff";
+        e.target.style.transform = "scale(1.05)";
+    };
+
+    const handleMouseLeave = (e) => {
+        e.target.style.background = "#ffffff";
+        e.target.style.color = "#5100ff";
+        e.target.style.transform = "scale(1)";
+    };
+
+    const handleMouseDown = (e) => {
+        e.target.style.transform = "scale(0.98)";
+    };
+
+    const handleMouseUp = (e) => {
+        e.target.style.transform = "scale(1.05)";
     };
 
     const handleStudentClick = () => {
-        navigate('/student/auth');
+        navigate("/student/auth");
     };
 
     const handleEmployerClick = () => {
-        navigate('/employer/auth');
+        navigate("/employer/auth");
     };
 
     return (
         <div style={styles.container}>
-            <div style={styles.logo}>
-                CC
-            </div>
+        <div style={styles.logo}>CC</div>
 
-            <h2 style={styles.slogan}>
-                Connecting Talent and Opportunity - Smarter
-            </h2>
-            
-            <div style={styles.buttons}>
-                <button 
-                    style={styles.button}
-                    onMouseEnter={(e) => {
-                        e.target.style.transform = "translateY(-2px)";
-                        e.target.style.boxShadow = "0 6px 20px rgba(0,0,0,0.15)";
-                    }}
-                    onMouseLeave={(e) => {
-                        e.target.style.transform = "translateY(0)";
-                        e.target.style.boxShadow = "none";
-                    }}
-                    onClick={handleStudentClick}
-                >
-                    For Students
-                </button>
-                <button 
-                    style={styles.button}
-                    onMouseEnter={(e) => {
-                        e.target.style.transform = "translateY(-2px)";
-                        e.target.style.boxShadow = "0 6px 20px rgba(0,0,0,0.15)";
-                    }}
-                    onMouseLeave={(e) => {
-                        e.target.style.transform = "translateY(0)";
-                        e.target.style.boxShadow = "none";
-                    }}
-                    onClick={handleEmployerClick}
-                >
-                    For Employers
-                </button>
-            </div>
+        <h2 style={styles.slogan}>
+            Connecting Talent and Opportunity - Smarter
+        </h2>
+
+        <div style={styles.buttons}>
+            <button
+            style={styles.button}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onClick={handleStudentClick}
+            >
+            For Students
+            </button>
+            <button
+            style={styles.button}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onClick={handleEmployerClick}
+            >
+            For Employers
+            </button>
+        </div>
         </div>
     );
 }
