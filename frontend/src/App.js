@@ -10,6 +10,7 @@ import EmployerProfile from './components/EmployerProfile';
 import EmployerEditProfile from './components/EmployerEditProfile';
 import EmployerDashboard from './components/EmployerDashboard';
 import StudentDashboard from './components/StudentDashboard';
+import EventSearchPage from './components/EventSearchPage';  // ✅ ADD THIS LINE
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/student/profile" element={<StudentProfile />} />
         <Route path="/student/edit-profile" element={<StudentEditProfile />} />
         <Route path="/student/update-resume" element={<StudentUpdateResume />} />
+        <Route path="/student/browse-events" element={<EventSearchPage />} />
         <Route path="/employer/dashboard" element={<EmployerDashboard />} />
         <Route path="/employer/profile" element={<EmployerProfile />} />
         <Route path="/employer/edit-profile" element={<EmployerEditProfile />} />

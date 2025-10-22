@@ -69,30 +69,42 @@ skill_trie = Trie()
 
 def build_event_trie():
     """Build/rebuild the event search trie"""
-    from models import Event  # ✅ Import here to avoid circular import
+    from models import Event
     
     global event_trie
     event_trie = Trie()
     
+    print("🔨 Building event trie...")
+    
     events = Event.query.all()
+    print(f"📊 Found {len(events)} events in database")
+    
     for event in events:
+        print(f"📝 Indexing event: {event.title}")
+        
         # Index by title words
         for word in event.title.split():
+            print(f"   → Indexing word: '{word}' for event ID {event.id}")
             event_trie.insert(word, event.id)
         
         # Index by tags
         if event.tags:
             for tag in event.tags.split(','):
-                event_trie.insert(tag.strip(), event.id)
+                tag = tag.strip()
+                print(f"   → Indexing tag: '{tag}' for event ID {event.id}")
+                event_trie.insert(tag, event.id)
         
         # Index by company name
         if event.employer:
+            print(f"   → Indexing company: '{event.employer.company_name}' for event ID {event.id}")
             event_trie.insert(event.employer.company_name, event.id)
+    
+    print("✅ Event trie built successfully!")
 
 
 def build_company_trie():
     """Build/rebuild the company search trie"""
-    from models import EmployerProfile  # ✅ Import here to avoid circular import
+    from models import EmployerProfile
     
     global company_trie
     company_trie = Trie()
@@ -110,7 +122,7 @@ def build_company_trie():
 
 def build_skill_trie():
     """Build/rebuild the skill search trie"""
-    from models import StudentSkill  # ✅ Import here to avoid circular import
+    from models import StudentSkill
     
     global skill_trie
     skill_trie = Trie()

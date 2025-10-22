@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 from models import db, User, StudentProfile, EmployerProfile, Event, EventRSVP, StudentSkill
-from trie import event_trie, company_trie, build_event_trie, build_company_trie
 from functools import wraps
 import jwt
 from datetime import datetime, timedelta
@@ -92,7 +91,7 @@ def register():
             industry=data.get('industry', ''),
             description=data.get('description', ''),
             website=data.get('website', ''),
-            location=data.get('location', '')  # ✅ ADD THIS LINE
+            location=data.get('location', '')
         )
         db.session.add(profile)
     
@@ -100,6 +99,7 @@ def register():
     
     # Rebuild tries if employer (for company search)
     if data['user_type'] == 'employer':
+        from trie import build_company_trie
         build_company_trie()
     
     # Generate token
@@ -235,12 +235,13 @@ def manage_employer_profile(current_user):
         profile.description = data['description']
     if 'website' in data:
         profile.website = data['website']
-    if 'location' in data:  # ✅ ADD THIS
+    if 'location' in data:
         profile.location = data['location']
     
     db.session.commit()
     
     # Rebuild company trie
+    from trie import build_company_trie
     build_company_trie()
     
     return jsonify({
@@ -302,6 +303,7 @@ def manage_events():
     db.session.commit()
     
     # Rebuild event trie
+    from trie import build_event_trie
     build_event_trie()
     
     return jsonify({
@@ -362,6 +364,7 @@ def manage_single_event(event_id):
         db.session.commit()
         
         # Rebuild event trie
+        from trie import build_event_trie
         build_event_trie()
         
         return jsonify({
@@ -374,6 +377,7 @@ def manage_single_event(event_id):
     db.session.commit()
     
     # Rebuild event trie
+    from trie import build_event_trie
     build_event_trie()
     
     return jsonify({'message': 'Event deleted successfully'}), 200
@@ -475,8 +479,13 @@ def get_event_applicants(current_user, event_id):
 
 @api.route('/search', methods=['GET'])
 def search():
+    # ✅ IMPORT INSIDE THE FUNCTION TO GET LATEST TRIE
+    from trie import event_trie, company_trie
+    
     query = request.args.get('q', '').strip()
     search_type = request.args.get('type', 'all')  # 'events', 'companies', 'all'
+    
+    print(f"🔍 Search request: query='{query}', type='{search_type}'")  # Debug
     
     if not query:
         return jsonify({'message': 'Search query required'}), 400
@@ -489,24 +498,35 @@ def search():
     # Search events using Trie
     if search_type in ['events', 'all']:
         event_ids = event_trie.starts_with(query)
+        print(f"📊 Event IDs found: {event_ids}")  # Debug
+        
         if event_ids:
             events = Event.query.filter(Event.id.in_(event_ids)).all()
             results['events'] = [event.to_dict() for event in events]
+            print(f"✅ Events found: {len(results['events'])}")  # Debug
     
     # Search companies using Trie
     if search_type in ['companies', 'all']:
         company_ids = company_trie.starts_with(query)
+        print(f"📊 Company IDs found: {company_ids}")  # Debug
+        
         if company_ids:
             companies = EmployerProfile.query.filter(EmployerProfile.id.in_(company_ids)).all()
             results['companies'] = [company.to_dict() for company in companies]
+            print(f"✅ Companies found: {len(results['companies'])}")  # Debug
     
     return jsonify(results), 200
 
 
 @api.route('/search/autocomplete', methods=['GET'])
 def autocomplete():
+    # ✅ IMPORT INSIDE THE FUNCTION TO GET LATEST TRIE
+    from trie import event_trie, company_trie
+    
     query = request.args.get('q', '').strip()
     search_type = request.args.get('type', 'events')
+    
+    print(f"🔍 Autocomplete request: query='{query}', type='{search_type}'")  # Debug
     
     if not query:
         return jsonify([]), 200
@@ -515,14 +535,20 @@ def autocomplete():
     
     if search_type == 'events':
         event_ids = event_trie.starts_with(query)
+        print(f"📊 Event IDs from trie: {event_ids}")  # Debug
+        
         if event_ids:
-            events = Event.query.filter(Event.id.in_(event_ids)).limit(10).all()
+            events = Event.query.filter(Event.id.in_(event_ids)).limit(4).all()
             suggestions = [{'id': e.id, 'title': e.title, 'type': 'event'} for e in events]
+            print(f"✅ Returning {len(suggestions)} suggestions")  # Debug
     
     elif search_type == 'companies':
         company_ids = company_trie.starts_with(query)
+        print(f"📊 Company IDs from trie: {company_ids}")  # Debug
+        
         if company_ids:
-            companies = EmployerProfile.query.filter(EmployerProfile.id.in_(company_ids)).limit(10).all()
+            companies = EmployerProfile.query.filter(EmployerProfile.id.in_(company_ids)).limit(4).all()
             suggestions = [{'id': c.id, 'name': c.company_name, 'type': 'company'} for c in companies]
+            print(f"✅ Returning {len(suggestions)} suggestions")  # Debug
     
     return jsonify(suggestions), 200
