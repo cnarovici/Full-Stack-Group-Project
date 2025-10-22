@@ -8,11 +8,10 @@
     align-items: center; 
 }
 
-/* Header Section */
+/* Dashboard Header */
 .dashboard-header {
     width: 750px;          
     margin-bottom: 30px;
-    margin-right: 40px;
 }
 
 .dashboard-header h2 {
@@ -21,18 +20,106 @@
     margin-bottom: 20px;
 }
 
+/* Search Container with Autocomplete */
+.search-container {
+    position: relative;
+    width: 100%;
+}
+
+.search-form-dashboard {
+    width: 100%;
+    position: relative;
+}
+
 .dashboard-search {
-    width: 100%;            
-    padding: 12px 18px;
-    border: 1px solid #ccc;
+    width: 100%;
+    padding: 14px 20px;
+    border: none;
     border-radius: 30px;
     font-size: 16px;
     outline: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    transition: border 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+    background: white;
 }
+
 .dashboard-search:focus {
-    border-color: #4a90e2;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Autocomplete Suggestions - Clean Style */
+.dashboard-suggestions {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dashboard-suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.dashboard-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.dashboard-suggestion-item:hover {
+    background-color: #f8f9ff;
+}
+
+.dashboard-suggestion-item .suggestion-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.dashboard-suggestion-item .suggestion-text {
+    flex: 1;
+    color: #333;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* Scrollbar for suggestions */
+.dashboard-suggestions::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dashboard-suggestions::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.dashboard-suggestions::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 10px;
+}
+
+.dashboard-suggestions::-webkit-scrollbar-thumb:hover {
+    background: #5568d3;
 }
 
 /* Grid Section */
@@ -70,7 +157,6 @@
     font-size: 18px;
     color: #333;
 }
-
 
 /* Recommended Section */
 .recommended-section {
@@ -141,4 +227,33 @@
     font-size: 13px;
     cursor: default;
     font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dashboard-header {
+        width: 100%;
+    }
+
+    .dashboard-grid {
+        width: 100%;
+        grid-template-columns: 1fr;
+    }
+
+    .recommended-section {
+        width: 100%;
+    }
+
+    .dashboard-search {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+
+    .dashboard-suggestion-item {
+        padding: 12px 16px;
+    }
+
+    .dashboard-suggestion-item .suggestion-text {
+        font-size: 14px;
+    }
 }
