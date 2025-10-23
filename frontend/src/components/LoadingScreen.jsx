@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
 // import myImage from "../assets/logo.jpg"; // Uncomment when you have the logo
+const API_BASE_URL = 'http://localhost:5001/api';
 
 export default function LoadingScreen() {
     const navigate = useNavigate();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './SearchBar.css';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5001/api';
 
 const SearchBar = ({ onEventSelect, onSearch, showFullSearch = false }) => {
     const [searchQuery, setSearchQuery] = useState('');

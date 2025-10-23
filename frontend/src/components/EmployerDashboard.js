@@ -2,6 +2,7 @@ import React from "react";
 import { FaMapMarkerAlt, FaCalendarAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "./EmployerDashboard.css";
+const API_BASE_URL = 'http://localhost:5001/api';
 
 const EmployerDashboard = () => {
     const navigate = useNavigate();

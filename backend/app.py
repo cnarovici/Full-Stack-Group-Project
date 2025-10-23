@@ -5,27 +5,31 @@ from routes import api
 import os
 
 app = Flask(__name__)
+
+# Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///career_fair.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 
-# Initialize extensions
+# Initialize database
 db.init_app(app)
+
+# CRITICAL: Configure CORS BEFORE registering blueprints
 CORS(app, resources={
     r"/api/*": {
         "origins": ["http://localhost:3000"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": True
+        "supports_credentials": True,
+        "expose_headers": ["Content-Type", "Authorization"]
     }
 })
 
-# Register blueprints
+# Register blueprints AFTER CORS
 app.register_blueprint(api, url_prefix='/api')
 
-# Initialize database
+# Initialize database and tries
 with app.app_context():
-    # ✅ CHANGED: Only create tables if they don't exist, DON'T drop them
     db.create_all()
     print("✅ Database ready!")
     
@@ -36,4 +40,4 @@ with app.app_context():
     print("✅ Search indexes initialized!")
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001, host='0.0.0.0')  # ✅ Changed to 5001

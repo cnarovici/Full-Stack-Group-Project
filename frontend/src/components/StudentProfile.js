@@ -3,7 +3,7 @@ import { FaFileAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import './StudentProfile.css';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5001/api';
 
 const StudentProfile = () => {
     const navigate = useNavigate();

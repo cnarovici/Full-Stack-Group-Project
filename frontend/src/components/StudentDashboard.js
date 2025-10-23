@@ -5,7 +5,7 @@ import { FaBriefcase, FaMapMarkerAlt, FaCalendarAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "./StudentDashboard.css";
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5001/api';
 
 const StudentDashboard = () => {
     const navigate = useNavigate();

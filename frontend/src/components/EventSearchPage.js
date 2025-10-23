@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './EventSearchPage.css';
 import { FaMapMarkerAlt, FaCalendarAlt, FaBuilding } from 'react-icons/fa';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5001/api';
 
 const EventSearchPage = () => {
     const navigate = useNavigate();

@@ -1,5 +1,6 @@
 import React from "react";
 import "./EventDetails.css";
+const API_BASE_URL = 'http://localhost:5001/api';
 
 const EventDetail = () => {
     const event = {
