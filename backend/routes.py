@@ -4,6 +4,7 @@ from functools import wraps
 import jwt
 from datetime import datetime, timedelta
 import os
+from models import PREDEFINED_SKILLS, JOB_PREFERENCES
 
 api = Blueprint('api', __name__)
 
@@ -34,6 +35,48 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
     
     return decorated
+
+# ============= TAGS/SKILLS ROUTES =============
+
+@api.route('/tags/skills', methods=['GET'])
+def get_predefined_skills():
+    """Get list of predefined skills for tag selection"""
+    return jsonify(PREDEFINED_SKILLS), 200
+
+
+@api.route('/tags/preferences', methods=['GET'])
+def get_job_preferences():
+    """Get list of predefined job preferences for tag selection"""
+    return jsonify(JOB_PREFERENCES), 200
+
+
+# ============= BROWSE EVENTS (TOPOLOGICAL SORT) =============
+
+@api.route('/events/browse', methods=['GET'])
+@token_required
+def browse_events(current_user):
+    """
+    Get all events ranked by relevance to the student's profile
+    Uses topological sort based on skills and job preferences match
+    """
+    if current_user.user_type != 'student':
+        return jsonify({'message': 'Only students can browse events'}), 403
+    
+    from ranking import topological_sort_events
+    
+    # Get all future events
+    all_events = Event.query.filter(Event.event_date >= datetime.utcnow()).all()
+    
+    if not all_events:
+        return jsonify([]), 200
+    
+    # Get student profile
+    student_profile = current_user.student_profile
+    
+    # Sort events using topological sort based on relevance
+    sorted_events = topological_sort_events(all_events, student_profile)
+    
+    return jsonify([event.to_dict() for event in sorted_events]), 200
 
 
 # ============= AUTHENTICATION ROUTES =============
@@ -66,19 +109,22 @@ def register():
     
     # Create profile based on user type
     if data['user_type'] == 'student':
+        # ✅ NEW: Accept skills and job_preferences as arrays
+        skills = data.get('skills', [])  # Array of skill names
+        job_preferences = data.get('job_preferences', [])  # Array of preference names
+        
         profile = StudentProfile(
             user_id=user.id,
             full_name=data.get('full_name', ''),
             school=data.get('school', ''),
             major=data.get('major', ''),
-            job_preferences=','.join(data.get('job_preferences', []))
+            job_preferences=','.join(job_preferences)  # Store as comma-separated string
         )
         
         db.session.add(profile)
         db.session.flush()  # Get profile.id before adding skills
         
         # Add skills
-        skills = data.get('skills', [])
         for skill_name in skills:
             if skill_name:  # Only add non-empty skills
                 skill = StudentSkill(student_id=profile.id, skill_name=skill_name)
@@ -142,6 +188,14 @@ def login():
         'user': user.to_dict()
     }), 200
 
+@api.route('/auth/logout', methods=['POST'])
+@token_required
+def logout(current_user):
+    """
+    Logout endpoint (JWT is stateless, so this is mainly for frontend)
+    Frontend should delete the token from localStorage
+    """
+    return jsonify({'message': 'Logged out successfully'}), 200
 
 # ============= PROFILE ROUTES =============
 
@@ -177,18 +231,21 @@ def manage_student_profile(current_user):
         profile.major = data['major']
     if 'resume_url' in data:
         profile.resume_url = data['resume_url']
+    
+    # ✅ NEW: Update job_preferences as array
     if 'job_preferences' in data:
         profile.job_preferences = ','.join(data['job_preferences'])
     
-    # Update skills
+    # ✅ NEW: Update skills as array
     if 'skills' in data:
         # Remove old skills
         StudentSkill.query.filter_by(student_id=profile.id).delete()
         
         # Add new skills
         for skill_name in data['skills']:
-            skill = StudentSkill(student_id=profile.id, skill_name=skill_name)
-            db.session.add(skill)
+            if skill_name:
+                skill = StudentSkill(student_id=profile.id, skill_name=skill_name)
+                db.session.add(skill)
     
     db.session.commit()
     

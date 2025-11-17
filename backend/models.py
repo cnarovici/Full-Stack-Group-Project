@@ -1,15 +1,40 @@
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 db = SQLAlchemy()
 
+# ============= PREDEFINED TAGS/SKILLS =============
+PREDEFINED_SKILLS = [
+    'Python', 'JavaScript', 'Java', 'C++', 'C#', 'Ruby', 'Go', 'Swift', 'Kotlin',
+    'TypeScript', 'React', 'Angular', 'Vue.js', 'Node.js', 'Django', 'Flask',
+    'Spring Boot', 'SQL', 'NoSQL', 'MongoDB', 'PostgreSQL', 'MySQL', 'Git',
+    'Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP', 'Machine Learning', 'AI',
+    'Data Science', 'Data Analysis', 'Deep Learning', 'TensorFlow', 'PyTorch',
+    'Computer Vision', 'NLP', 'Blockchain', 'Web3', 'Cybersecurity', 'DevOps',
+    'CI/CD', 'Agile', 'Scrum', 'REST APIs', 'GraphQL', 'Microservices',
+    'Mobile Development', 'iOS', 'Android', 'Flutter', 'React Native',
+    'UI/UX Design', 'Figma', 'Adobe XD', 'Product Management', 'Project Management'
+]
+
+JOB_PREFERENCES = [
+    'Software Engineering', 'Data Science', 'Machine Learning', 'Web Development',
+    'Mobile Development', 'DevOps', 'Cybersecurity', 'Cloud Computing',
+    'AI Research', 'Backend Development', 'Frontend Development', 'Full Stack',
+    'Data Engineering', 'Product Management', 'UI/UX Design', 'Quality Assurance',
+    'Database Administration', 'Network Engineering', 'Systems Architecture',
+    'Game Development', 'Embedded Systems', 'Blockchain Development',
+    'Financial Technology', 'Health Technology', 'E-commerce', 'EdTech',
+    'Research & Development', 'Technical Writing', 'Sales Engineering'
+]
+
+# ============= USER MODEL =============
 class User(db.Model):
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
     user_type = db.Column(db.String(20), nullable=False)  # 'student' or 'employer'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -32,16 +57,17 @@ class User(db.Model):
         }
 
 
+# ============= STUDENT PROFILE =============
 class StudentProfile(db.Model):
     __tablename__ = 'student_profiles'
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    full_name = db.Column(db.String(100), nullable=False)
-    school = db.Column(db.String(200))
+    full_name = db.Column(db.String(100))
+    school = db.Column(db.String(100))
     major = db.Column(db.String(100))
     resume_url = db.Column(db.String(500))
-    job_preferences = db.Column(db.Text)  # Comma-separated or JSON string
+    job_preferences = db.Column(db.Text)  # Comma-separated tags
     
     # Relationships
     skills = db.relationship('StudentSkill', backref='student', cascade='all, delete-orphan')
@@ -60,34 +86,7 @@ class StudentProfile(db.Model):
         }
 
 
-class EmployerProfile(db.Model):
-    __tablename__ = 'employer_profiles'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    company_name = db.Column(db.String(200), nullable=False)
-    industry = db.Column(db.String(100))
-    description = db.Column(db.Text)
-    website = db.Column(db.String(500))
-    logo_url = db.Column(db.String(500))
-    location = db.Column(db.String(200))  # ✅ ADD THIS LINE
-    
-    # Relationships
-    events = db.relationship('Event', backref='employer', cascade='all, delete-orphan')
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'company_name': self.company_name,
-            'industry': self.industry,
-            'description': self.description,
-            'website': self.website,
-            'logo_url': self.logo_url,
-            'location': self.location  # ✅ ADD THIS LINE
-        }
-
-
+# ============= STUDENT SKILLS =============
 class StudentSkill(db.Model):
     __tablename__ = 'student_skills'
     
@@ -102,6 +101,34 @@ class StudentSkill(db.Model):
         }
 
 
+# ============= EMPLOYER PROFILE =============
+class EmployerProfile(db.Model):
+    __tablename__ = 'employer_profiles'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    company_name = db.Column(db.String(100))
+    industry = db.Column(db.String(100))
+    description = db.Column(db.Text)
+    website = db.Column(db.String(200))
+    location = db.Column(db.String(200))
+    
+    # Relationships
+    events = db.relationship('Event', backref='employer', cascade='all, delete-orphan')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'company_name': self.company_name,
+            'industry': self.industry,
+            'description': self.description,
+            'website': self.website,
+            'location': self.location
+        }
+
+
+# ============= EVENT MODEL =============
 class Event(db.Model):
     __tablename__ = 'events'
     
@@ -109,11 +136,9 @@ class Event(db.Model):
     employer_id = db.Column(db.Integer, db.ForeignKey('employer_profiles.id'), nullable=False)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    event_type = db.Column(db.String(50))  # 'Virtual', 'In-Person', etc.
+    event_type = db.Column(db.String(50))  # 'Virtual', 'In-Person', 'Hybrid'
     location = db.Column(db.String(200))
     event_date = db.Column(db.DateTime, nullable=False)
-    start_time = db.Column(db.Time)
-    end_time = db.Column(db.Time)
     tags = db.Column(db.Text)  # Comma-separated tags
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -123,28 +148,22 @@ class Event(db.Model):
     def to_dict(self, include_employer=True):
         data = {
             'id': self.id,
-            'employer_id': self.employer_id,
             'title': self.title,
             'description': self.description,
             'event_type': self.event_type,
             'location': self.location,
             'event_date': self.event_date.isoformat(),
-            'start_time': self.start_time.isoformat() if self.start_time else None,
-            'end_time': self.end_time.isoformat() if self.end_time else None,
             'tags': self.tags.split(',') if self.tags else [],
-            'rsvp_count': len(self.rsvps),
             'created_at': self.created_at.isoformat()
         }
         
-        if include_employer and self.employer:
-            data['employer'] = {
-                'company_name': self.employer.company_name,
-                'logo_url': self.employer.logo_url
-            }
+        if include_employer:
+            data['employer'] = self.employer.to_dict()
         
         return data
 
 
+# ============= EVENT RSVP =============
 class EventRSVP(db.Model):
     __tablename__ = 'event_rsvps'
     
@@ -152,9 +171,6 @@ class EventRSVP(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
     student_id = db.Column(db.Integer, db.ForeignKey('student_profiles.id'), nullable=False)
     rsvp_date = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Unique constraint to prevent duplicate RSVPs
-    __table_args__ = (db.UniqueConstraint('event_id', 'student_id', name='unique_event_student'),)
     
     def to_dict(self):
         return {
