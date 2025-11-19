@@ -10,7 +10,8 @@ import EmployerProfile from './components/EmployerProfile';
 import EmployerEditProfile from './components/EmployerEditProfile';
 import EmployerDashboard from './components/EmployerDashboard';
 import StudentDashboard from './components/StudentDashboard';
-import EventSearchPage from './components/EventSearchPage';  // ✅ ADD THIS LINE
+import EventSearchPage from './components/EventSearchPage'; // ✅ ADD THIS LINE
+import EmployerPostEvents from './components/EmployerPostEvents';   // Add this line for the PostEvents
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/employer/dashboard" element={<EmployerDashboard />} />
         <Route path="/employer/profile" element={<EmployerProfile />} />
         <Route path="/employer/edit-profile" element={<EmployerEditProfile />} />
+        <Route path="/employer/post-event" element={<EmployerPostEvents />} />         
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
