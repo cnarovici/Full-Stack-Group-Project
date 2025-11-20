@@ -1,0 +1,137 @@
+/* BrowseEvents.css */
+
+.browse-events-container {
+    min-height: 100vh;
+    background: #f8f9fa;
+    padding: 20px;
+}
+
+.browse-events-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Back Button */
+.back-button {
+    background: none;
+    border: none;
+    color: #667eea;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 0;
+    margin-bottom: 20px;
+    transition: color 0.3s ease;
+}
+
+.back-button:hover {
+    color: #5568d3;
+    text-decoration: underline;
+}
+
+/* Page Title */
+.page-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #333333;
+    margin-bottom: 30px;
+}
+
+/* Section Title */
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 15px;
+}
+
+/* Events List */
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Event Card */
+.event-card {
+    background: white;
+    padding: 16px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.event-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    border-color: #e0e0e0;
+}
+
+.event-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 6px;
+}
+
+.event-details {
+    color: #666666;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* Tags */
+.event-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.category-tag {
+    padding: 4px 10px;
+    background: #e7f0ff;
+    color: #667eea;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.match-badge {
+    padding: 4px 10px;
+    background: #e7f0ff;
+    color: #667eea;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .browse-events-container {
+        padding: 15px;
+    }
+
+    .page-title {
+        font-size: 28px;
+    }
+
+    .event-card {
+        padding: 14px;
+    }
+
+    .event-title {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 24px;
+    }
+
+    .section-title {
+        font-size: 18px;
+    }
+}
