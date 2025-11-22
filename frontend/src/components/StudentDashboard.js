@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './StudentDashboard.css';
-import { FaFileAlt, FaEdit, FaSearch, FaBriefcase, FaMapMarkerAlt, FaCalendarAlt, FaSignOutAlt } from 'react-icons/fa';
+import { FaFileAlt, FaEdit, FaSearch, FaBriefcase, FaMapMarkerAlt, FaCalendarAlt, FaSignOutAlt, FaEnvelope } from 'react-icons/fa';
 import { logout } from '../utils/auth';
 
 const API_BASE_URL = 'http://localhost:5001/api';
@@ -12,6 +12,7 @@ const StudentDashboard = () => {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [userName, setUserName] = useState('');
+    const [unreadCount, setUnreadCount] = useState(0); // ← ADD THIS
 
     useEffect(() => {
         // Verify authentication
@@ -35,7 +36,28 @@ const StudentDashboard = () => {
         } catch (e) {
             console.error('Error parsing user:', e);
         }
+
+        fetchUnreadMessages(); // ← ADD THIS
     }, [navigate]);
+
+    // ← ADD THIS FUNCTION
+    const fetchUnreadMessages = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE_URL}/messages/unread-count`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setUnreadCount(data.unread_count || 0);
+            }
+        } catch (err) {
+            console.error('Error fetching unread count:', err);
+        }
+    };
 
     const handleLogout = () => {
         if (window.confirm('Are you sure you want to logout?')) {
@@ -89,9 +111,10 @@ const StudentDashboard = () => {
     }, [searchQuery]);
 
     const handleSuggestionClick = (suggestion) => {
-        setSearchQuery(suggestion.title);
+        console.log('🔘 Event clicked:', suggestion);
+        setSearchQuery('');
         setShowSuggestions(false);
-        navigate('/student/search', { state: { searchQuery: suggestion.title } });
+        navigate(`/student/events/${suggestion.id}`);
     };
 
     const handleSearchSubmit = (e) => {
@@ -101,21 +124,34 @@ const StudentDashboard = () => {
         }
     };
 
-    // ✅ ADD THESE HANDLERS
     const handleCardClick = (path) => {
         console.log('🔘 Card clicked, navigating to:', path);
         navigate(path);
     };
 
+    // ← ADD THIS HANDLER
+    const handleViewMessages = () => {
+        console.log('🔘 Navigating to messages');
+        navigate('/student/messages');
+    };
+
     return (
         <div className="dashboard-wrapper">
-            {/* Header with Logout Button */}
+            {/* Header with Logout and Messages Buttons */}
             <div className="dashboard-header">
                 <div className="header-top">
                     <h2>Welcome back{userName ? `, ${userName}` : ''}!</h2>
-                    <button className="logout-button" onClick={handleLogout}>
-                        <FaSignOutAlt /> Logout
-                    </button>
+                    <div className="header-actions">
+                        {/* ← ADD THIS MESSAGES BUTTON */}
+                        <button className="messages-button" onClick={handleViewMessages}>
+                            <FaEnvelope />
+                            {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
+                            Messages
+                        </button>
+                        <button className="logout-button" onClick={handleLogout}>
+                            <FaSignOutAlt /> Logout
+                        </button>
+                    </div>
                 </div>
 
                 {/* Search Container */}
@@ -150,7 +186,7 @@ const StudentDashboard = () => {
                 </div>
             </div>
 
-            {/* Dashboard Grid - ✅ UPDATED */}
+            {/* Dashboard Grid */}
             <div className="dashboard-grid">
                 <div 
                     className="dashboard-card" 

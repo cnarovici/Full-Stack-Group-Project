@@ -1,252 +1,235 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './StudentEditProfile.css';
+import './StudentProfile.css';
+import { FaFileAlt, FaEdit } from 'react-icons/fa';
 
 const API_BASE_URL = 'http://localhost:5001/api';
 
-const StudentEditProfile = () => {
+const StudentProfile = () => {
     const navigate = useNavigate();
+    const [profile, setProfile] = useState(null);
+    const [savedEvents, setSavedEvents] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    
-    const [formData, setFormData] = useState({
-        full_name: '',
-        school: '',
-        major: '',
-        skills: [],
-        job_preferences: []
-    });
 
     useEffect(() => {
         fetchProfile();
+        fetchSavedEvents();
     }, []);
 
     const fetchProfile = async () => {
         try {
             const token = localStorage.getItem('token');
-            if (!token) {
-                navigate('/');
-                return;
-            }
-
             const response = await fetch(`${API_BASE_URL}/profile/student`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to fetch profile');
+            if (response.ok) {
+                const data = await response.json();
+                setProfile(data);
             }
-
-            setFormData({
-                full_name: data.full_name || '',
-                school: data.school || '',
-                major: data.major || '',
-                skills: data.skills || [],
-                job_preferences: data.job_preferences || []
-            });
         } catch (err) {
-            setError(err.message);
+            console.error('Error fetching profile:', err);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+    const fetchSavedEvents = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            console.log('📥 Fetching saved events for profile...');
+            
+            const response = await fetch(`${API_BASE_URL}/events/rsvp`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Saved events:', data);
+                setSavedEvents(data.slice(0, 3)); // Show only first 3
+            } else {
+                console.error('❌ Failed to fetch saved events');
+            }
+        } catch (err) {
+            console.error('Error fetching saved events:', err);
+        }
     };
 
-    const handleSkillsChange = (e) => {
-        const skillsArray = e.target.value.split(',').map(s => s.trim()).filter(s => s !== '');
-        setFormData(prev => ({
-            ...prev,
-            skills: skillsArray
-        }));
-    };
-
-    const handleJobPreferencesChange = (e) => {
-        const prefsArray = e.target.value.split(',').map(p => p.trim()).filter(p => p !== '');
-        setFormData(prev => ({
-            ...prev,
-            job_preferences: prefsArray
-        }));
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setSuccess('');
-        setSaving(true);
+    const handleUnregister = async (eventId) => {
+        if (!window.confirm('Are you sure you want to unregister from this event?')) {
+            return;
+        }
 
         try {
             const token = localStorage.getItem('token');
-            if (!token) {
-                navigate('/');
-                return;
-            }
-
-            const response = await fetch(`${API_BASE_URL}/profile/student`, {
-                method: 'PUT',
+            const response = await fetch(`${API_BASE_URL}/events/${eventId}/rsvp`, {
+                method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
+                }
             });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to update profile');
+            if (response.ok) {
+                console.log('✅ Unregistered successfully');
+                // Refresh the saved events
+                fetchSavedEvents();
+            } else {
+                alert('Failed to unregister from event');
             }
-
-            setSuccess('Profile updated successfully!');
-            setTimeout(() => {
-                navigate('/student/profile');
-            }, 1500);
-
         } catch (err) {
-            setError(err.message);
-        } finally {
-            setSaving(false);
+            console.error('Error unregistering:', err);
+            alert('Failed to unregister from event');
         }
+    };
+
+    const handleViewEvent = (eventId) => {
+        navigate(`/student/events/${eventId}`);
     };
 
     if (loading) {
         return (
-            <div style={{
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                fontSize: '24px'
-            }}>
-                Loading...
+            <div className="profile-page">
+                <div className="loading-state">
+                    <div className="spinner"></div>
+                    <p>Loading profile...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!profile) {
+        return (
+            <div className="profile-page">
+                <div className="error-state">
+                    <p>Profile not found</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="edit-profile-container">
-            <div className="edit-profile-card">
-                <div className="edit-profile-header">
-                    <button 
-                        onClick={() => navigate('/student/profile')}
-                        className="back-button"
-                    >
-                        ← Back to Profile
-                    </button>
-                    <h1>Edit Profile</h1>
+        <div className="profile-page">
+            <div className="profile-container">
+                {/* Profile Header */}
+                <div className="profile-header">
+                    <div className="student-avatar">
+                        {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : 'S'}
+                    </div>
+                    <div className="student-info">
+                        <h1>{profile.full_name || 'Student'}</h1>
+                        <p className="school">{profile.school || 'University'}</p>
+                        <p className="major">{profile.major || 'Major'}</p>
+                    </div>
                 </div>
 
-                {error && (
-                    <div className="alert alert-error">
-                        {error}
-                    </div>
-                )}
-
-                {success && (
-                    <div className="alert alert-success">
-                        {success}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="edit-form">
-                    <div className="form-group">
-                        <label className="form-label">Full Name</label>
-                        <input
-                            type="text"
-                            name="full_name"
-                            className="form-input"
-                            value={formData.full_name}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label">School / University</label>
-                        <input
-                            type="text"
-                            name="school"
-                            className="form-input"
-                            value={formData.school}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label">Major</label>
-                        <input
-                            type="text"
-                            name="major"
-                            className="form-input"
-                            value={formData.major}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label">Skills (comma-separated)</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            value={formData.skills.join(', ')}
-                            onChange={handleSkillsChange}
-                            placeholder="Python, JavaScript, React"
-                        />
-                        <small className="form-hint">
-                            Separate skills with commas
-                        </small>
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label">Job Preferences (comma-separated)</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            value={formData.job_preferences.join(', ')}
-                            onChange={handleJobPreferencesChange}
-                            placeholder="Software Engineering, Data Science"
-                        />
-                        <small className="form-hint">
-                            Separate preferences with commas
-                        </small>
-                    </div>
-
-                    <div className="form-actions">
+                {/* Resume Section */}
+                <div className="profile-section">
+                    <h2>My Resume</h2>
+                    <div className="resume-box">
+                        <FaFileAlt className="resume-icon" />
+                        <p>{profile.resume_url ? 'Resume Uploaded' : 'No Resume Uploaded'}</p>
                         <button 
-                            type="button" 
-                            onClick={() => navigate('/student/profile')}
-                            className="btn-cancel"
+                            className="upload-resume-btn"
+                            onClick={() => navigate('/student/resume')}
                         >
-                            Cancel
-                        </button>
-                        <button 
-                            type="submit" 
-                            className="btn-save"
-                            disabled={saving}
-                        >
-                            {saving ? 'Saving...' : 'Save Changes'}
+                            {profile.resume_url ? 'Update Resume' : 'Upload Resume'}
                         </button>
                     </div>
-                </form>
+                </div>
+
+                {/* Skills & Interests */}
+                <div className="profile-section">
+                    <h2>Skills & Interests</h2>
+                    <div className="tags-container">
+                        {profile.skills && profile.skills.length > 0 ? (
+                            profile.skills.map((skill, index) => (
+                                <span key={index} className="tag">{skill}</span>
+                            ))
+                        ) : (
+                            <p className="no-data">No skills added yet</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Job Preferences */}
+                <div className="profile-section">
+                    <h2>Job Preferences</h2>
+                    <div className="tags-container">
+                        {profile.job_preferences && profile.job_preferences.length > 0 ? (
+                            profile.job_preferences.map((pref, index) => (
+                                <span key={index} className="tag">{pref}</span>
+                            ))
+                        ) : (
+                            <p className="no-data">No job preferences added yet</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Saved Events */}
+                <div className="profile-section">
+                    <div className="section-header">
+                        <h2>Saved Events</h2>
+                        {savedEvents.length > 0 && (
+                            <button 
+                                className="view-all-btn"
+                                onClick={() => navigate('/student/saved')}
+                            >
+                                View All
+                            </button>
+                        )}
+                    </div>
+                    
+                    {savedEvents.length > 0 ? (
+                        <div className="saved-events-preview">
+                            {savedEvents.map((event) => (
+                                <div key={event.id} className="event-preview-card">
+                                    <h3>{event.title}</h3>
+                                    <p className="event-company">{event.employer?.company_name || 'Company'}</p>
+                                    <div className="event-preview-actions">
+                                        <button 
+                                            className="view-btn"
+                                            onClick={() => handleViewEvent(event.id)}
+                                        >
+                                            View
+                                        </button>
+                                        <button 
+                                            className="remove-btn"
+                                            onClick={() => handleUnregister(event.id)}
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="no-data">No saved events yet</p>
+                    )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="profile-actions">
+                    <button 
+                        className="edit-profile-btn"
+                        onClick={() => navigate('/student/profile/edit')}
+                    >
+                        <FaEdit /> Edit Profile
+                    </button>
+                    <button 
+                        className="back-dashboard-btn"
+                        onClick={() => navigate('/student/dashboard')}
+                    >
+                        Back to Dashboard
+                    </button>
+                </div>
             </div>
         </div>
     );
 };
 
-export default StudentEditProfile;
+export default StudentProfile;

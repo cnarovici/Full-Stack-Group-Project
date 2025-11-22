@@ -11,6 +11,7 @@ const EventSearchPage = () => {
     const [searchResults, setSearchResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
+    const [rsvpStatus, setRsvpStatus] = useState({}); // ← ADDED
 
     const handleSearchSubmit = async (e) => {
         e.preventDefault();
@@ -41,6 +42,11 @@ const EventSearchPage = () => {
             console.log('📊 Events found:', data.events?.length || 0);
             
             setSearchResults(data.events || []);
+            
+            // ← ADDED: Check RSVP status for all events
+            if (data.events && data.events.length > 0) {
+                checkRsvpStatus(data.events.map(event => event.id));
+            }
         } catch (error) {
             console.error('❌ Error searching events:', error);
             setSearchResults([]);
@@ -49,14 +55,76 @@ const EventSearchPage = () => {
         }
     };
 
+    // ← ADDED: Check RSVP status
+    const checkRsvpStatus = async (eventIds) => {
+        try {
+            const token = localStorage.getItem('token');
+            const statusChecks = await Promise.all(
+                eventIds.map(id =>
+                    fetch(`${API_BASE_URL}/events/${id}/rsvp/status`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                    .then(r => r.ok ? r.json() : { is_rsvped: false })
+                    .then(data => ({ id, isRsvped: data.is_rsvped }))
+                    .catch(() => ({ id, isRsvped: false }))
+                )
+            );
+
+            const statusMap = {};
+            statusChecks.forEach(({ id, isRsvped }) => {
+                statusMap[id] = isRsvped;
+            });
+            setRsvpStatus(statusMap);
+        } catch (err) {
+            console.error('Error checking RSVP status:', err);
+        }
+    };
+
+    // ← ADDED: Handle RSVP
+    const handleRsvp = async (eventId, e) => {
+        e.stopPropagation();
+        console.log('🔘 RSVP clicked for event:', eventId);
+        
+        try {
+            const token = localStorage.getItem('token');
+            const isCurrentlyRsvped = rsvpStatus[eventId];
+
+            const response = await fetch(`${API_BASE_URL}/events/${eventId}/rsvp`, {
+                method: isCurrentlyRsvped ? 'DELETE' : 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                console.log('✅ RSVP successful');
+                setRsvpStatus(prev => ({
+                    ...prev,
+                    [eventId]: !isCurrentlyRsvped
+                }));
+            } else {
+                console.error('❌ RSVP failed');
+            }
+        } catch (err) {
+            console.error('RSVP error:', err);
+        }
+    };
+
+    // ← ADDED: Handle View Details
+    const handleViewDetails = (eventId, e) => {
+        e.stopPropagation();
+        console.log('🔘 Navigating to event:', eventId);
+        navigate(`/student/events/${eventId}`);
+    };
+
     const handleInputChange = (e) => {
         setSearchQuery(e.target.value);
     };
 
     const handleEventClick = (event) => {
         // Navigate to event details page
-        alert(`Event clicked: ${event.title}`);
-        // navigate(`/events/${event.id}`);
+        navigate(`/student/events/${event.id}`);
     };
 
     return (
@@ -149,9 +217,20 @@ const EventSearchPage = () => {
                                             </div>
                                         )}
 
+                                        {/* ← UPDATED: Working buttons */}
                                         <div className="result-actions">
-                                            <button className="rsvp-button">RSVP to Event</button>
-                                            <button className="details-button">View Details</button>
+                                            <button 
+                                                className={`rsvp-button ${rsvpStatus[event.id] ? 'rsvped' : ''}`}
+                                                onClick={(e) => handleRsvp(event.id, e)}
+                                            >
+                                                {rsvpStatus[event.id] ? '✓ Registered' : 'RSVP to Event'}
+                                            </button>
+                                            <button 
+                                                className="details-button"
+                                                onClick={(e) => handleViewDetails(event.id, e)}
+                                            >
+                                                View Details
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
