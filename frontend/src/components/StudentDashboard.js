@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
-import { AiOutlineFileText } from "react-icons/ai";
-import { FiEdit3, FiSearch } from "react-icons/fi";
-import { FaBriefcase, FaMapMarkerAlt, FaCalendarAlt } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import "./StudentDashboard.css";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './StudentDashboard.css';
+import { FaFileAlt, FaEdit, FaSearch, FaBriefcase, FaMapMarkerAlt, FaCalendarAlt, FaSignOutAlt } from 'react-icons/fa';
+import { logout } from '../utils/auth';
 
 const API_BASE_URL = 'http://localhost:5001/api';
 
@@ -12,157 +11,127 @@ const StudentDashboard = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const searchRef = useRef(null);
+    const [userName, setUserName] = useState('');
 
-    const handleCardClick = (path) => {
-        navigate(path);
+    useEffect(() => {
+        // Verify authentication
+        const token = localStorage.getItem('token');
+        const userStr = localStorage.getItem('user');
+        
+        console.log('🔍 Dashboard loading...');
+        console.log('Token exists:', !!token);
+        console.log('User data:', userStr);
+        
+        if (!token) {
+            console.log('❌ No token, redirecting to login');
+            navigate('/');
+            return;
+        }
+
+        try {
+            const user = JSON.parse(userStr || '{}');
+            console.log('✅ Parsed user:', user);
+            setUserName(user.full_name || '');
+        } catch (e) {
+            console.error('Error parsing user:', e);
+        }
+    }, [navigate]);
+
+    const handleLogout = () => {
+        if (window.confirm('Are you sure you want to logout?')) {
+            logout();
+        }
     };
 
-    // Close suggestions when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (searchRef.current && !searchRef.current.contains(event.target)) {
-                setShowSuggestions(false);
-            }
-        };
+    const fetchSuggestions = async () => {
+        if (searchQuery.trim().length < 2) {
+            setSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+        console.log('🔍 Fetching suggestions for:', searchQuery);
 
-    // Fetch autocomplete suggestions
-    useEffect(() => {
-        const fetchSuggestions = async () => {
-            if (searchQuery.trim().length < 2) {
-                setSuggestions([]);
-                setShowSuggestions(false);
-                return;
-            }
-
-            try {
-                const response = await fetch(
-                    `${API_BASE_URL}/search/autocomplete?q=${encodeURIComponent(searchQuery)}&type=events`
-                );
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch suggestions');
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(
+                `${API_BASE_URL}/search/autocomplete?q=${encodeURIComponent(searchQuery)}&type=events`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
                 }
-
-                const data = await response.json();
-                setSuggestions(data);
-                setShowSuggestions(data.length > 0);
-            } catch (error) {
-                console.error('Error fetching suggestions:', error);
-                setSuggestions([]);
+            );
+            
+            console.log('📥 Response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch suggestions');
             }
 
-            if (searchQuery.trim().length < 2) {
-                setSuggestions([]);
-                setShowSuggestions(false);
-                return;
-            }
+            const data = await response.json();
+            console.log('✅ Received suggestions:', data);
+            
+            setSuggestions(data);
+            setShowSuggestions(data.length > 0);
+        } catch (error) {
+            console.error('❌ Error fetching suggestions:', error);
+            setSuggestions([]);
+        }
+    };
 
-            console.log('🔍 Fetching suggestions for:', searchQuery);
-            console.log('📡 API URL:', `${API_BASE_URL}/search/autocomplete?q=${encodeURIComponent(searchQuery)}&type=events`);
-
-            try {
-                const response = await fetch(
-                    `${API_BASE_URL}/search/autocomplete?q=${encodeURIComponent(searchQuery)}&type=events`
-                );
-                
-                console.log('📥 Response status:', response.status);
-                console.log('📥 Response ok:', response.ok);
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch suggestions');
-                }
-
-                const data = await response.json();
-                console.log('✅ Received suggestions:', data);
-                console.log('📊 Number of suggestions:', data.length);
-                
-                setSuggestions(data);
-                setShowSuggestions(data.length > 0);
-                console.log('👁️ Show suggestions:', data.length > 0);
-            } catch (error) {
-                console.error('❌ Error fetching suggestions:', error);
-                setSuggestions([]);
-            }
-        };
-
-        // Debounce the search
-        const timeoutId = setTimeout(() => {
+    useEffect(() => {
+        const delayDebounce = setTimeout(() => {
             fetchSuggestions();
         }, 300);
 
-        return () => clearTimeout(timeoutId);
+        return () => clearTimeout(delayDebounce);
     }, [searchQuery]);
 
-    const handleSearchChange = (e) => {
-        setSearchQuery(e.target.value);
-    };
-
     const handleSuggestionClick = (suggestion) => {
-        setSearchQuery('');
+        setSearchQuery(suggestion.title);
         setShowSuggestions(false);
-        // Navigate to event details or search page with this event
-        alert(`Selected: ${suggestion.title}`);
+        navigate('/student/search', { state: { searchQuery: suggestion.title } });
     };
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         if (searchQuery.trim()) {
-            // Navigate to full search page with query
-            navigate(`/student/browse-events?q=${encodeURIComponent(searchQuery)}`);
+            navigate('/student/search', { state: { searchQuery } });
         }
     };
 
-    // Example recommended events
-    const recommendedEvents = [
-        {
-            title: "Tech Innovators Meetup 2025",
-            location: "Chicago Tech Hub",
-            date: "Nov 12, 2025",
-            type: "Software Engineering",
-        },
-        {
-            title: "AI & Data Career Expo",
-            location: "UIC Convention Center",
-            date: "Dec 5, 2025",
-            type: "Data Engineering",
-        },
-        {
-            title: "Women in STEM Networking Night",
-            location: "Google Campus",
-            date: "Nov 30, 2025",
-            type: "Networking",
-        },
-    ];
+    // ✅ ADD THESE HANDLERS
+    const handleCardClick = (path) => {
+        console.log('🔘 Card clicked, navigating to:', path);
+        navigate(path);
+    };
 
     return (
         <div className="dashboard-wrapper">
-            {/* Search Bar with Autocomplete */}
+            {/* Header with Logout Button */}
             <div className="dashboard-header">
-                <h2 style={{ 
-                    fontSize: '24px', 
-                    color: '#333', 
-                    marginBottom: '20px',
-                    textAlign: 'center'
-                }}>
-                    Welcome back!
-                </h2>
-                
-                <div className="search-container" ref={searchRef}>
+                <div className="header-top">
+                    <h2>Welcome back{userName ? `, ${userName}` : ''}!</h2>
+                    <button className="logout-button" onClick={handleLogout}>
+                        <FaSignOutAlt /> Logout
+                    </button>
+                </div>
+
+                {/* Search Container */}
+                <div className="search-container">
                     <form onSubmit={handleSearchSubmit} className="search-form-dashboard">
                         <input
                             type="text"
-                            placeholder="Search for events..."
                             className="dashboard-search"
+                            placeholder="Search for events, companies, or categories..."
                             value={searchQuery}
-                            onChange={handleSearchChange}
-                            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onFocus={() => searchQuery.length >= 2 && setShowSuggestions(true)}
+                            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                         />
-                        
+
+                        {/* Autocomplete Suggestions */}
                         {showSuggestions && suggestions.length > 0 && (
                             <div className="dashboard-suggestions">
                                 {suggestions.map((suggestion) => (
@@ -171,7 +140,7 @@ const StudentDashboard = () => {
                                         className="dashboard-suggestion-item"
                                         onClick={() => handleSuggestionClick(suggestion)}
                                     >
-                                        <span className="suggestion-icon">📅</span>
+                                        <FaCalendarAlt className="suggestion-icon" />
                                         <span className="suggestion-text">{suggestion.title}</span>
                                     </div>
                                 ))}
@@ -181,24 +150,48 @@ const StudentDashboard = () => {
                 </div>
             </div>
 
-            {/* Dashboard 4 Boxes */}
+            {/* Dashboard Grid - ✅ UPDATED */}
             <div className="dashboard-grid">
-                <div className="dashboard-card" onClick={() => handleCardClick("/student/update-resume")}>
-                    <AiOutlineFileText className="dashboard-icon" />
+                <div 
+                    className="dashboard-card" 
+                    onClick={() => handleCardClick('/student/resume')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyPress={(e) => e.key === 'Enter' && handleCardClick('/student/resume')}
+                >
+                    <FaFileAlt className="dashboard-icon" />
                     <h3>Update Resume</h3>
                 </div>
 
-                <div className="dashboard-card" onClick={() => handleCardClick("/student/edit-profile")}>
-                    <FiEdit3 className="dashboard-icon" />
+                <div 
+                    className="dashboard-card" 
+                    onClick={() => handleCardClick('/student/profile/edit')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyPress={(e) => e.key === 'Enter' && handleCardClick('/student/profile/edit')}
+                >
+                    <FaEdit className="dashboard-icon" />
                     <h3>Edit Profile</h3>
                 </div>
 
-                <div className="dashboard-card" onClick={() => handleCardClick("/student/browse-events")}>
-                    <FiSearch className="dashboard-icon" />
+                <div 
+                    className="dashboard-card" 
+                    onClick={() => handleCardClick('/student/browse')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyPress={(e) => e.key === 'Enter' && handleCardClick('/student/browse')}
+                >
+                    <FaSearch className="dashboard-icon" />
                     <h3>Browse Event</h3>
                 </div>
 
-                <div className="dashboard-card" onClick={() => handleCardClick("/student/saved-jobs")}>
+                <div 
+                    className="dashboard-card" 
+                    onClick={() => handleCardClick('/student/saved')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyPress={(e) => e.key === 'Enter' && handleCardClick('/student/saved')}
+                >
                     <FaBriefcase className="dashboard-icon" />
                     <h3>Saved Job</h3>
                 </div>
@@ -206,25 +199,39 @@ const StudentDashboard = () => {
 
             {/* Recommended Section */}
             <div className="recommended-section">
-                <h2 className="recommended-title">Recommended For You</h2>
-
+                <h3 className="recommended-title">Recommended For You</h3>
                 <div className="recommended-list">
-                    {recommendedEvents.map((event, index) => (
-                        <div key={index} className="event-container">
-                            <h3 className="event-title">{event.title}</h3>
-                            <div className="event-info">
-                                <div className="event-details">
-                                    <FaMapMarkerAlt className="event-icon" />
-                                    <span>{event.location}</span>
-                                </div>
-                                <div className="event-details">
-                                    <FaCalendarAlt className="event-icon" />
-                                    <span>{event.date}</span>
-                                </div>
+                    <div className="event-container">
+                        <h4 className="event-title">Tech Career Fair 2025</h4>
+                        <div className="event-info">
+                            <div className="event-details">
+                                <FaMapMarkerAlt className="event-icon" />
+                                <span>Virtual</span>
                             </div>
-                            <button className="event-type-btn">{event.type}</button>
+                            <div className="event-details">
+                                <FaCalendarAlt className="event-icon" />
+                                <span>Oct 25, 2025</span>
+                            </div>
                         </div>
-                    ))}
+                        <button className="event-type-btn">Software Engineering</button>
+                        <span className="match-badge">95% Match</span>
+                    </div>
+
+                    <div className="event-container">
+                        <h4 className="event-title">Google Campus Recruiting</h4>
+                        <div className="event-info">
+                            <div className="event-details">
+                                <FaMapMarkerAlt className="event-icon" />
+                                <span>Mountain View, CA</span>
+                            </div>
+                            <div className="event-details">
+                                <FaCalendarAlt className="event-icon" />
+                                <span>Nov 2, 2025</span>
+                            </div>
+                        </div>
+                        <button className="event-type-btn">Data Science</button>
+                        <span className="match-badge">85% Match</span>
+                    </div>
                 </div>
             </div>
         </div>

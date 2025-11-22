@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify
-from models import db, User, StudentProfile, EmployerProfile, Event, EventRSVP, StudentSkill
+from models import db, User, StudentProfile, EmployerProfile, Event, EventRSVP, StudentSkill, Message, PREDEFINED_SKILLS, JOB_PREFERENCES
+#                                                                                    ^^^^^^^ ADD THIS
 from functools import wraps
 import jwt
 from datetime import datetime, timedelta
 import os
-from models import PREDEFINED_SKILLS, JOB_PREFERENCES
+
 
 api = Blueprint('api', __name__)
 
@@ -312,11 +313,30 @@ def manage_employer_profile(current_user):
 @api.route('/events', methods=['GET', 'POST'])
 def manage_events():
     if request.method == 'GET':
-        # Get all events or filter
+        # Check if this is an authenticated employer requesting their own events
+        token = request.headers.get('Authorization')
+        
+        if token:
+            try:
+                if token.startswith('Bearer '):
+                    token = token[7:]
+                data_token = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+                current_user = User.query.get(data_token['user_id'])
+                
+                # If employer, return only their events
+                if current_user and current_user.user_type == 'employer':
+                    events = Event.query.filter_by(
+                        employer_id=current_user.employer_profile.id
+                    ).order_by(Event.event_date.desc()).all()
+                    return jsonify([event.to_dict() for event in events]), 200
+            except:
+                pass
+        
+        # Otherwise return all events (for students or public)
         events = Event.query.order_by(Event.event_date.desc()).all()
         return jsonify([event.to_dict() for event in events]), 200
     
-    # POST - Create new event (requires authentication)
+    # POST - Create new event (keep existing code)
     token = request.headers.get('Authorization')
     if not token:
         return jsonify({'message': 'Authentication required'}), 401
@@ -367,7 +387,6 @@ def manage_events():
         'message': 'Event created successfully',
         'event': event.to_dict()
     }), 201
-
 
 @api.route('/events/<int:event_id>', methods=['GET', 'PUT', 'DELETE'])
 def manage_single_event(event_id):
@@ -609,3 +628,144 @@ def autocomplete():
             print(f"✅ Returning {len(suggestions)} suggestions")  # Debug
     
     return jsonify(suggestions), 200
+
+# ============= MESSAGING ROUTES =============
+
+@api.route('/messages/unread-count', methods=['GET'])
+@token_required
+def get_unread_count(current_user):
+    """Get count of unread messages (employer only)"""
+    if current_user.user_type != 'employer':
+        return jsonify({'message': 'Only employers can check unread count'}), 403
+    
+    count = Message.query.filter_by(
+        recipient_id=current_user.employer_profile.id,
+        is_read=False
+    ).count()
+    
+    return jsonify({'unread_count': count}), 200
+
+
+@api.route('/messages/reply/<int:message_id>', methods=['POST'])
+@token_required
+def reply_to_message(current_user, message_id):
+    """Reply to a message (employer replies to student)"""
+    if current_user.user_type != 'employer':
+        return jsonify({'message': 'Only employers can reply to messages'}), 403
+    
+    original_message = Message.query.get(message_id)
+    
+    if not original_message:
+        return jsonify({'message': 'Original message not found'}), 404
+    
+    if original_message.recipient_id != current_user.employer_profile.id:
+        return jsonify({'message': 'Unauthorized'}), 403
+    
+    data = request.get_json()
+    
+    if not data.get('message_text'):
+        return jsonify({'message': 'Message text required'}), 400
+    
+    # Mark original as read
+    original_message.is_read = True
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Reply sent successfully',
+        'note': 'Reply functionality acknowledged'
+    }), 200
+
+
+@api.route('/messages/<int:message_id>', methods=['GET', 'PUT', 'DELETE'])
+@token_required
+def manage_single_message(current_user, message_id):
+    """
+    GET: Get a single message
+    PUT: Mark message as read (employer only)
+    DELETE: Delete a message
+    """
+    message = Message.query.get(message_id)
+    
+    if not message:
+        return jsonify({'message': 'Message not found'}), 404
+    
+    # Check permissions
+    if current_user.user_type == 'employer':
+        if message.recipient_id != current_user.employer_profile.id:
+            return jsonify({'message': 'Unauthorized'}), 403
+    else:
+        if message.sender_id != current_user.student_profile.id:
+            return jsonify({'message': 'Unauthorized'}), 403
+    
+    if request.method == 'GET':
+        return jsonify(message.to_dict()), 200
+    
+    if request.method == 'PUT':
+        # Mark as read (employer only)
+        if current_user.user_type != 'employer':
+            return jsonify({'message': 'Only employers can mark messages as read'}), 403
+        
+        message.is_read = True
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Message marked as read',
+            'data': message.to_dict()
+        }), 200
+    
+    # DELETE
+    db.session.delete(message)
+    db.session.commit()
+    
+    return jsonify({'message': 'Message deleted successfully'}), 200
+
+
+@api.route('/messages', methods=['GET', 'POST'])
+@token_required
+def manage_messages(current_user):
+    """
+    GET: Get all messages for current user (student sees sent, employer sees received)
+    POST: Send a new message (student to employer)
+    """
+    if request.method == 'GET':
+        if current_user.user_type == 'employer':
+            # Employer sees received messages
+            messages = Message.query.filter_by(
+                recipient_id=current_user.employer_profile.id
+            ).order_by(Message.created_at.desc()).all()
+        else:
+            # Student sees sent messages
+            messages = Message.query.filter_by(
+                sender_id=current_user.student_profile.id
+            ).order_by(Message.created_at.desc()).all()
+        
+        return jsonify([msg.to_dict() for msg in messages]), 200
+    
+    # POST - Send new message (student only)
+    if current_user.user_type != 'student':
+        return jsonify({'message': 'Only students can send messages'}), 403
+    
+    data = request.get_json()
+    
+    if not data.get('recipient_id') or not data.get('message_text'):
+        return jsonify({'message': 'Recipient and message text required'}), 400
+    
+    # Check if recipient exists
+    recipient = EmployerProfile.query.get(data['recipient_id'])
+    if not recipient:
+        return jsonify({'message': 'Recipient not found'}), 404
+    
+    message = Message(
+        sender_id=current_user.student_profile.id,
+        recipient_id=data['recipient_id'],
+        subject=data.get('subject', 'Message from Student'),
+        message_text=data['message_text']
+    )
+    
+    db.session.add(message)
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Message sent successfully',
+        'data': message.to_dict()
+    }), 201

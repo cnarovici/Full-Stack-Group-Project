@@ -1,0 +1,123 @@
+.saved-jobs-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    background: #f8f9fa;
+}
+
+.back-button {
+    background: none;
+    border: none;
+    color: #667eea;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.back-button:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+.page-title {
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.loading-state, .no-events {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f0f0f0;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.browse-button {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+}
+
+.browse-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.event-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.event-card h3 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.event-card p {
+    color: #666;
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.event-date {
+    color: #999;
+    font-size: 14px;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .saved-jobs-page {
+        padding: 15px;
+    }
+
+    .page-title {
+        font-size: 24px;
+    }
+
+    .event-card {
+        padding: 15px;
+    }
+
+    .event-card h3 {
+        font-size: 18px;
+    }
+}

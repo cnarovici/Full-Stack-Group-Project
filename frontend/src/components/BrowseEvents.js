@@ -1,59 +1,104 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './BrowseEvents.css';
+import { FaMapMarkerAlt, FaCalendarAlt } from 'react-icons/fa';
+
+const API_BASE_URL = 'http://localhost:5001/api';
 
 const BrowseEvents = () => {
-    const [events] = useState([
-        {
-            id: 1,
-            title: 'Tech Career Fair 2025',
-            location: 'Virtual',
-            date: 'Oct 25, 2025',
-            categories: ['Software Engineering'],
-            matchPercentage: 95,
-            company: 'Sample Tech Company',
-            type: 'Virtual'
-        },
-        {
-            id: 2,
-            title: 'Data Science Summit',
-            location: 'San Francisco',
-            date: 'Dec 5, 2025',
-            categories: ['Data Science'],
-            matchPercentage: 88,
-            company: 'DataCorp Analytics',
-            type: 'In-Person'
-        },
-        {
-            id: 3,
-            title: 'Tech Networking Night',
-            location: 'Chicago, IL',
-            date: 'Nov 10, 2025',
-            categories: ['Networking'],
-            matchPercentage: 82,
-            company: 'Tech Hub',
-            type: 'In-Person'
-        },
-        {
-            id: 4,
-            title: 'Product Management Expo',
-            location: 'New York, NY',
-            date: 'Dec 15, 2025',
-            categories: ['Product Management'],
-            matchPercentage: 78,
-            company: 'PM Association',
-            type: 'Hybrid'
+    const navigate = useNavigate();
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        fetchBrowseEvents();
+    }, []);
+
+    const fetchBrowseEvents = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                navigate('/login');
+                return;
+            }
+
+            console.log('🔍 Fetching browse events (topological sort)...');
+
+            const response = await fetch(`${API_BASE_URL}/events/browse`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('📥 Response status:', response.status);
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    navigate('/login');
+                    return;
+                }
+                throw new Error('Failed to fetch events');
+            }
+
+            const data = await response.json();
+            console.log('✅ Browse events received:', data);
+            
+            setEvents(data);
+        } catch (err) {
+            console.error('❌ Error fetching browse events:', err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
         }
-    ]);
+    };
 
     const handleEventClick = (eventId) => {
-        console.log(`Viewing event ${eventId}`);
-        // Navigate to event detail page
+        navigate(`/student/events/${eventId}`);
     };
 
     const handleBack = () => {
-        console.log('Going back to dashboard');
-        // Navigate back to dashboard
+        navigate('/student/dashboard');
     };
+
+    if (loading) {
+        return (
+            <div className="browse-events-container">
+                <div className="browse-events-content">
+                    <button className="back-button" onClick={handleBack}>
+                        ← Back to Dashboard
+                    </button>
+                    <h1 className="page-title">Browse Events</h1>
+                    <div className="loading-state">
+                        <div className="spinner"></div>
+                        <p>Loading events...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="browse-events-container">
+                <div className="browse-events-content">
+                    <button className="back-button" onClick={handleBack}>
+                        ← Back to Dashboard
+                    </button>
+                    <h1 className="page-title">Browse Events</h1>
+                    <div className="error-state">
+                        <p>Error loading events: {error}</p>
+                        <button onClick={fetchBrowseEvents} className="retry-button">
+                            Retry
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="browse-events-container">
@@ -64,30 +109,40 @@ const BrowseEvents = () => {
 
                 <h1 className="page-title">Browse Events</h1>
 
-                <h2 className="section-title">Recommended For You</h2>
+                <h2 className="section-title">
+                    Recommended For You - Ranked by Relevance
+                </h2>
 
-                <div className="events-list">
-                    {events.map((event) => (
-                        <div
-                            key={event.id}
-                            className="event-card"
-                            onClick={() => handleEventClick(event.id)}
-                        >
-                            <h3 className="event-title">{event.title}</h3>
-                            <p className="event-details">
-                                📍 {event.location} • 📅 {event.date}
-                            </p>
-                            <div className="event-tags">
-                                {event.categories.map((category, index) => (
-                                    <span key={index} className="category-tag">
-                                        {category}
-                                    </span>
-                                ))}
-                                <span className="match-badge">{event.matchPercentage}% Match</span>
+                {events.length === 0 ? (
+                    <div className="no-events">
+                        <p>No events found. Check back later!</p>
+                    </div>
+                ) : (
+                    <div className="events-list">
+                        {events.map((event, index) => (
+                            <div
+                                key={event.id}
+                                className="event-card"
+                                onClick={() => handleEventClick(event.id)}
+                            >
+                                <div className="event-rank">#{index + 1}</div>
+                                <h3 className="event-title">{event.title}</h3>
+                                <p className="event-details">
+                                    <FaMapMarkerAlt /> {event.location || 'TBD'} • 
+                                    <FaCalendarAlt /> {new Date(event.event_date).toLocaleDateString()}
+                                </p>
+                                <div className="event-tags">
+                                    {event.tags && event.tags.length > 0 && event.tags.map((tag, idx) => (
+                                        <span key={idx} className="category-tag">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                    <span className="event-type-badge">{event.event_type}</span>
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

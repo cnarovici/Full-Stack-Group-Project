@@ -1,40 +1,97 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import './ViewEvent.css';
+import { FaBuilding, FaCalendarAlt, FaMapMarkerAlt } from 'react-icons/fa';
+
+const API_BASE_URL = 'http://localhost:5001/api';
 
 const ViewEvent = () => {
-    // In a real app, you'd fetch this data based on event ID from URL params
-    const [event] = useState({
-        id: 1,
-        title: 'Tech Career Fair 2025',
-        company: 'Sample Tech Company',
-        date: 'October 25, 2025',
-        time: '10:00 AM - 4:00 PM',
-        location: 'Virtual Event',
-        type: 'Virtual',
-        description: 'Join us for our annual tech career fair featuring top companies looking for talented software engineers, data scientists, and product managers. Network with recruiters, attend workshops, and explore exciting career opportunities.',
-        categories: ['Software Engineering', 'Data Science', 'Career Fair'],
-        interestedCount: 45,
-        companiesCount: 12,
-        matchPercentage: 95,
-        requirements: [
-            'Resume required',
-            'Portfolio recommended',
-            'LinkedIn profile'
-        ]
-    });
-
+    const { eventId } = useParams();
+    const navigate = useNavigate();
+    
+    const [event, setEvent] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [isRSVPed, setIsRSVPed] = useState(false);
+    const [error, setError] = useState(null);
 
-    const handleRSVP = () => {
-        console.log('RSVP to event:', event.id);
-        setIsRSVPed(!isRSVPed);
-        // API call to RSVP
-        alert(isRSVPed ? 'RSVP cancelled' : 'Successfully RSVP\'d to event!');
+    useEffect(() => {
+        fetchEventDetails();
+        checkRSVPStatus();
+    }, [eventId]);
+
+    const fetchEventDetails = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_BASE_URL}/events/${eventId}`);
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch event details');
+            }
+
+            const data = await response.json();
+            console.log('✅ Event details:', data);
+            setEvent(data);
+        } catch (err) {
+            console.error('❌ Error fetching event:', err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const checkRSVPStatus = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const response = await fetch(`${API_BASE_URL}/my-rsvps`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const rsvps = await response.json();
+                const hasRSVP = rsvps.some(rsvp => rsvp.id === parseInt(eventId));
+                setIsRSVPed(hasRSVP);
+            }
+        } catch (err) {
+            console.error('Error checking RSVP status:', err);
+        }
+    };
+
+    const handleRSVP = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                navigate('/login');
+                return;
+            }
+
+            const method = isRSVPed ? 'DELETE' : 'POST';
+            const response = await fetch(`${API_BASE_URL}/events/${eventId}/rsvp`, {
+                method: method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                setIsRSVPed(!isRSVPed);
+                alert(isRSVPed ? 'RSVP cancelled' : 'Successfully RSVP\'d to event!');
+            } else {
+                const data = await response.json();
+                alert(data.message || 'Failed to RSVP');
+            }
+        } catch (err) {
+            console.error('❌ Error with RSVP:', err);
+            alert('Failed to process RSVP');
+        }
     };
 
     const handleShare = () => {
-        console.log('Sharing event:', event.id);
-        // Share functionality
         if (navigator.share) {
             navigator.share({
                 title: event.title,
@@ -42,14 +99,42 @@ const ViewEvent = () => {
                 url: window.location.href
             });
         } else {
-            alert('Share link copied to clipboard!');
+            navigator.clipboard.writeText(window.location.href);
+            alert('Link copied to clipboard!');
         }
     };
 
     const handleBack = () => {
-        console.log('Going back to browse');
-        // Navigate back
+        navigate('/student/browse');
     };
+
+    if (loading) {
+        return (
+            <div className="view-event-container">
+                <div className="view-event-content">
+                    <div className="loading-state">
+                        <div className="spinner"></div>
+                        <p>Loading event details...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !event) {
+        return (
+            <div className="view-event-container">
+                <div className="view-event-content">
+                    <button className="back-button" onClick={handleBack}>
+                        ← Back to Browse
+                    </button>
+                    <div className="error-state">
+                        <p>Error loading event: {error || 'Event not found'}</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="view-event-container">
@@ -60,63 +145,39 @@ const ViewEvent = () => {
 
                 {/* Event Hero Card */}
                 <div className="event-hero">
-                    <div className="event-type-badge">{event.type}</div>
+                    <div className="event-type-badge">{event.event_type}</div>
 
                     <h1 className="event-hero-title">{event.title}</h1>
 
                     <div className="event-info">
+                        {event.employer && (
+                            <div className="info-row">
+                                <FaBuilding className="info-icon" />
+                                <span>{event.employer.company_name}</span>
+                            </div>
+                        )}
+
                         <div className="info-row">
-                            <span className="info-icon">🏢</span>
-                            <span>{event.company}</span>
+                            <FaCalendarAlt className="info-icon" />
+                            <span>{new Date(event.event_date).toLocaleString()}</span>
                         </div>
 
                         <div className="info-row">
-                            <span className="info-icon">📅</span>
-                            <span>{event.date} • {event.time}</span>
-                        </div>
-
-                        <div className="info-row">
-                            <span className="info-icon">📍</span>
-                            <span>{event.location}</span>
+                            <FaMapMarkerAlt className="info-icon" />
+                            <span>{event.location || 'TBD'}</span>
                         </div>
                     </div>
 
                     <p className="event-description">{event.description}</p>
 
-                    {/* Stats Row */}
-                    <div className="stats-row">
-                        <div className="stat-item">
-                            <div className="stat-number">{event.interestedCount}</div>
-                            <div className="stat-label">Interested</div>
-                        </div>
-                        <div className="stat-item">
-                            <div className="stat-number">{event.companiesCount}</div>
-                            <div className="stat-label">Companies</div>
-                        </div>
-                        <div className="stat-item">
-                            <div className="stat-number">{event.matchPercentage}%</div>
-                            <div className="stat-label">Match</div>
-                        </div>
-                    </div>
-
                     {/* Categories */}
-                    <div className="event-categories">
-                        {event.categories.map((category, index) => (
-                            <span key={index} className="category-tag">
-                                {category}
-                            </span>
-                        ))}
-                    </div>
-
-                    {/* Requirements */}
-                    {event.requirements && event.requirements.length > 0 && (
-                        <div className="requirements-section">
-                            <h3 className="requirements-title">Requirements</h3>
-                            <ul className="requirements-list">
-                                {event.requirements.map((req, index) => (
-                                    <li key={index}>{req}</li>
-                                ))}
-                            </ul>
+                    {event.tags && event.tags.length > 0 && (
+                        <div className="event-categories">
+                            {event.tags.map((tag, index) => (
+                                <span key={index} className="category-tag">
+                                    {tag}
+                                </span>
+                            ))}
                         </div>
                     )}
                 </div>

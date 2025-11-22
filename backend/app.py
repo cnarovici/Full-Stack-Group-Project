@@ -14,18 +14,10 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 # Initialize database
 db.init_app(app)
 
-# CRITICAL: Configure CORS BEFORE registering blueprints
-CORS(app, resources={
-    r"/api/*": {
-        "origins": ["http://localhost:3000"],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": True,
-        "expose_headers": ["Content-Type", "Authorization"]
-    }
-})
+# ✅ SIMPLE CORS - This handles OPTIONS automatically
+CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
 
-# Register blueprints AFTER CORS
+# Register blueprints
 app.register_blueprint(api, url_prefix='/api')
 
 # Initialize database and tries
@@ -39,5 +31,15 @@ with app.app_context():
     build_company_trie()
     print("✅ Search indexes initialized!")
 
+with app.app_context():
+    print("\n" + "="*60)
+    print("📋 REGISTERED API ROUTES:")
+    print("="*60)
+    for rule in app.url_map.iter_rules():
+        if '/api/' in rule.rule:
+            methods = ', '.join([m for m in rule.methods if m not in ['HEAD', 'OPTIONS']])
+            print(f"  {rule.rule:<40} [{methods}]")
+    print("="*60 + "\n")
+    
 if __name__ == '__main__':
-    app.run(debug=True, port=5001, host='0.0.0.0')  # ✅ Changed to 5001
+    app.run(debug=True, port=5001, host='0.0.0.0')

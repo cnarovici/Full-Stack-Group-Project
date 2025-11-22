@@ -1,8 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
-// import myImage from "../assets/logo.jpg"; // Uncomment when you have the logo
-const API_BASE_URL = 'http://localhost:5001/api';
 
 export default function LoadingScreen() {
     const navigate = useNavigate();
@@ -51,14 +49,9 @@ export default function LoadingScreen() {
         button: {
             padding: "15px 40px",
             borderRadius: "12px",
-            //border: "none",
             backgroundColor: "white",
             color: "#667eea",
             cursor: "pointer",
-            //fontSize: "1.1rem",
-            //fontWeight: "600",
-            //transition: "all 0.3s ease",
-            //minWidth: "200px", 
             width: "250px", 
             border: "2px solid #5100ff",        
             fontFamily: "Arial sans_serif",
@@ -67,13 +60,10 @@ export default function LoadingScreen() {
             transition: "background 0.3s ease, color 0.3s ease, transform 0.2s ease",
             textAlign: "center", 
         },
-    
     };
 
-    // Hover and active handlers
     const handleMouseEnter = (e) => {
-        e.target.style.background =
-        "linear-gradient(130deg, #cec1e7, #ad91ea, #a27fef)";
+        e.target.style.background = "linear-gradient(130deg, #cec1e7, #ad91ea, #a27fef)";
         e.target.style.color = "#ffffff";
         e.target.style.transform = "scale(1.05)";
     };
@@ -93,43 +83,43 @@ export default function LoadingScreen() {
     };
 
     const handleStudentClick = () => {
-        navigate("/student/auth");
+        navigate("/login", { state: { userType: 'student' } });
     };
 
     const handleEmployerClick = () => {
-        navigate("/employer/auth");
+        navigate("/login", { state: { userType: 'employer' } });
     };
 
     return (
         <div style={styles.container}>
-        <div style={styles.logo}>CC</div>
+            <div style={styles.logo}>CC</div>
 
-        <h2 style={styles.slogan}>
-            Connecting Talent and Opportunity - Smarter
-        </h2>
+            <h2 style={styles.slogan}>
+                Connecting Talent and Opportunity - Smarter
+            </h2>
 
-        <div style={styles.buttons}>
-            <button
-            style={styles.button}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
-            onClick={handleStudentClick}
-            >
-            For Students
-            </button>
-            <button
-            style={styles.button}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
-            onClick={handleEmployerClick}
-            >
-            For Employers
-            </button>
-        </div>
+            <div style={styles.buttons}>
+                <button
+                    style={styles.button}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
+                    onClick={handleStudentClick}
+                >
+                    For Students
+                </button>
+                <button
+                    style={styles.button}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
+                    onClick={handleEmployerClick}
+                >
+                    For Employers
+                </button>
+            </div>
         </div>
     );
 }

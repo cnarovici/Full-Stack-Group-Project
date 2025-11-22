@@ -154,7 +154,8 @@ class Event(db.Model):
             'location': self.location,
             'event_date': self.event_date.isoformat(),
             'tags': self.tags.split(',') if self.tags else [],
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat(),
+            'rsvp_count': len(self.rsvps)  # ← ADD THIS LINE
         }
         
         if include_employer:
@@ -178,4 +179,34 @@ class EventRSVP(db.Model):
             'event_id': self.event_id,
             'student_id': self.student_id,
             'rsvp_date': self.rsvp_date.isoformat()
+        }
+
+
+# ============= MESSAGE MODEL =============
+class Message(db.Model):
+    __tablename__ = 'messages'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('student_profiles.id'), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('employer_profiles.id'), nullable=False)
+    subject = db.Column(db.String(200))
+    message_text = db.Column(db.Text, nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    sender = db.relationship('StudentProfile', foreign_keys=[sender_id], backref='sent_messages')
+    recipient = db.relationship('EmployerProfile', foreign_keys=[recipient_id], backref='received_messages')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'sender_id': self.sender_id,
+            'sender_name': self.sender.full_name if self.sender else 'Unknown',
+            'recipient_id': self.recipient_id,
+            'recipient_name': self.recipient.company_name if self.recipient else 'Unknown',
+            'subject': self.subject,
+            'message_text': self.message_text,
+            'is_read': self.is_read,
+            'created_at': self.created_at.isoformat()
         }

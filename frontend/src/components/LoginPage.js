@@ -1,46 +1,106 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './LoginPage.css';
 
 const API_BASE_URL = 'http://localhost:5001/api';
 
-const LoginPage = ({ userType = 'student' }) => {
+const LoginPage = () => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState(userType);
-    const [isLogin, setIsLogin] = useState(false);
-    const [formData, setFormData] = useState({
+    const location = useLocation();
+    
+    const [activeTab, setActiveTab] = useState('student');
+    const [isLogin, setIsLogin] = useState(true);
+    
+    // Login form
+    const [loginData, setLoginData] = useState({
+        email: '',
+        password: ''
+    });
+    
+    // Registration form
+    const [registerData, setRegisterData] = useState({
         email: '',
         password: '',
-        fullName: '',
-        schoolOrCompany: '',
-        majorOrIndustry: '',
-        resume: null,
-        jobPreferencesOrDescription: '',
-        website: '',
-        skills: '',
-        location: ''  // ✅ ADDED
+        confirmPassword: '',
+        full_name: '',
+        school: '',
+        major: '',
+        company_name: '',
+        industry: '',
+        location: ''
     });
+    
+    // Tag selection
+    const [selectedSkills, setSelectedSkills] = useState([]);
+    const [selectedPreferences, setSelectedPreferences] = useState([]);
+    const [availableSkills, setAvailableSkills] = useState([]);
+    const [availablePreferences, setAvailablePreferences] = useState([]);
+    const [skillSearchQuery, setSkillSearchQuery] = useState('');
+    const [prefSearchQuery, setPrefSearchQuery] = useState('');
+    
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        setActiveTab(userType);
-    }, [userType]);
+        // Fetch predefined skills and preferences
+        fetchTags();
+    }, []);
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+    const fetchTags = async () => {
+        try {
+            const [skillsRes, prefsRes] = await Promise.all([
+                fetch(`${API_BASE_URL}/tags/skills`),
+                fetch(`${API_BASE_URL}/tags/preferences`)
+            ]);
+
+            if (skillsRes.ok && prefsRes.ok) {
+                const skills = await skillsRes.json();
+                const prefs = await prefsRes.json();
+                setAvailableSkills(skills);
+                setAvailablePreferences(prefs);
+            }
+        } catch (err) {
+            console.error('Error fetching tags:', err);
+        }
     };
 
-    const handleFileChange = (e) => {
-        setFormData(prev => ({
-            ...prev,
-            resume: e.target.files[0]
-        }));
+    const handleLoginChange = (e) => {
+        setLoginData({
+            ...loginData,
+            [e.target.name]: e.target.value
+        });
     };
+
+    const handleRegisterChange = (e) => {
+        setRegisterData({
+            ...registerData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleSkillToggle = (skill) => {
+        if (selectedSkills.includes(skill)) {
+            setSelectedSkills(selectedSkills.filter(s => s !== skill));
+        } else {
+            setSelectedSkills([...selectedSkills, skill]);
+        }
+    };
+
+    const handlePreferenceToggle = (pref) => {
+        if (selectedPreferences.includes(pref)) {
+            setSelectedPreferences(selectedPreferences.filter(p => p !== pref));
+        } else {
+            setSelectedPreferences([...selectedPreferences, pref]);
+        }
+    };
+
+    const filteredSkills = availableSkills.filter(skill =>
+        skill.toLowerCase().includes(skillSearchQuery.toLowerCase())
+    );
+
+    const filteredPreferences = availablePreferences.filter(pref =>
+        pref.toLowerCase().includes(prefSearchQuery.toLowerCase())
+    );
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -51,31 +111,28 @@ const LoginPage = ({ userType = 'student' }) => {
             const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    email: formData.email,
-                    password: formData.password
-                })
+                body: JSON.stringify(loginData)
             });
 
             const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.message || 'Login failed');
-            }
-
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-
-            if (data.user.user_type === 'student') {
-                navigate('/student/dashboard');
+            if (response.ok) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                if (data.user.user_type === 'student') {
+                    navigate('/student/dashboard');
+                } else {
+                    navigate('/employer/dashboard');
+                }
             } else {
-                navigate('/employer/dashboard');
+                setError(data.message || 'Login failed');
             }
-
         } catch (err) {
-            setError(err.message);
+            console.error('Login error:', err);
+            setError('An error occurred. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -84,287 +141,352 @@ const LoginPage = ({ userType = 'student' }) => {
     const handleRegister = async (e) => {
         e.preventDefault();
         setError('');
+
+        // Validation
+        if (registerData.password !== registerData.confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
+        if (activeTab === 'student') {
+            if (selectedSkills.length === 0) {
+                setError('Please select at least one skill');
+                return;
+            }
+            if (selectedPreferences.length === 0) {
+                setError('Please select at least one job preference');
+                return;
+            }
+        }
+
         setLoading(true);
 
         try {
-            const registrationData = {
-                email: formData.email,
-                password: formData.password,
+            const payload = {
+                email: registerData.email,
+                password: registerData.password,
                 user_type: activeTab
             };
 
             if (activeTab === 'student') {
-                registrationData.full_name = formData.fullName;
-                registrationData.school = formData.schoolOrCompany;
-                registrationData.major = formData.majorOrIndustry;
-                registrationData.job_preferences = formData.jobPreferencesOrDescription
-                    .split(',')
-                    .map(pref => pref.trim())
-                    .filter(pref => pref !== '');
-                registrationData.skills = formData.skills
-                    .split(',')
-                    .map(skill => skill.trim())
-                    .filter(skill => skill !== '');
-                registrationData.resume_url = '';
+                payload.full_name = registerData.full_name;
+                payload.school = registerData.school;
+                payload.major = registerData.major;
+                payload.skills = selectedSkills;
+                payload.job_preferences = selectedPreferences;
             } else {
-                // ✅ EMPLOYER REGISTRATION
-                registrationData.company_name = formData.fullName;
-                registrationData.industry = formData.schoolOrCompany;
-                registrationData.description = formData.jobPreferencesOrDescription;
-                registrationData.website = formData.website;
-                registrationData.location = formData.location || '';  // ✅ ADDED
+                payload.company_name = registerData.company_name;
+                payload.industry = registerData.industry;
+                payload.location = registerData.location;
             }
 
             const response = await fetch(`${API_BASE_URL}/auth/register`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(registrationData)
+                body: JSON.stringify(payload)
             });
 
             const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.message || 'Registration failed');
-            }
-
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-
-            if (activeTab === 'student') {
-                navigate('/student/dashboard');
+            if (response.ok) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                if (activeTab === 'student') {
+                    navigate('/student/dashboard');
+                } else {
+                    navigate('/employer/dashboard');
+                }
             } else {
-                navigate('/employer/dashboard');
+                setError(data.message || 'Registration failed');
             }
-
         } catch (err) {
-            setError(err.message);
+            console.error('Registration error:', err);
+            setError('An error occurred. Please try again.');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleSubmit = (e) => {
-        if (isLogin) {
-            handleLogin(e);
-        } else {
-            handleRegister(e);
         }
     };
 
     return (
         <div className="login-container">
             <div className="login-card">
-                <button
-                    onClick={() => navigate('/')}
-                    style={{
-                        position: 'absolute',
-                        top: '15px',
-                        left: '15px',
-                        background: 'none',
-                        border: 'none',
-                        fontSize: '24px',
-                        cursor: 'pointer',
-                        color: '#667eea',
-                        zIndex: 10
-                    }}
-                >
-                    ← Back
-                </button>
-
-                {!isLogin && (
-                    <div className="tabs">
-                        <button
-                            className={`tab ${activeTab === 'student' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('student')}
-                        >
-                            Student
-                        </button>
-                        <button
-                            className={`tab ${activeTab === 'employer' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('employer')}
-                        >
-                            Employer
-                        </button>
-                    </div>
-                )}
-
-                <form className="login-form" onSubmit={handleSubmit}>
-                    <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>
-                        {isLogin ? 'Login' : `Create ${activeTab === 'student' ? 'Student' : 'Employer'} Account`}
-                    </h2>
-
-                    {error && (
-                        <div style={{
-                            padding: '10px',
-                            marginBottom: '15px',
-                            backgroundColor: '#fee',
-                            border: '1px solid #fcc',
-                            borderRadius: '6px',
-                            color: '#c33',
-                            fontSize: '14px'
-                        }}>
-                            {error}
-                        </div>
-                    )}
-
-                    <div className="form-group">
-                        <label className="form-label">Email</label>
-                        <input
-                            type="email"
-                            name="email"
-                            className="form-input"
-                            placeholder="your.email@example.com"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label className="form-label">Password</label>
-                        <input
-                            type="password"
-                            name="password"
-                            className="form-input"
-                            placeholder="Enter your password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
-
-                    {!isLogin && (
-                        <>
-                            <div className="form-group">
-                                <label className="form-label">
-                                    {activeTab === 'student' ? 'Full Name' : 'Company Name'}
-                                </label>
-                                <input
-                                    type="text"
-                                    name="fullName"
-                                    className="form-input"
-                                    placeholder={activeTab === 'student' ? 'John Doe' : 'TechCorp Inc.'}
-                                    value={formData.fullName}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label">
-                                    {activeTab === 'student' ? 'School / University' : 'Industry'}
-                                </label>
-                                <input
-                                    type="text"
-                                    name="schoolOrCompany"
-                                    className="form-input"
-                                    placeholder={activeTab === 'student' ? 'University of Illinois at Chicago' : 'Technology'}
-                                    value={formData.schoolOrCompany}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
-
-                            {activeTab === 'student' ? (
-                                <>
-                                    <div className="form-group">
-                                        <label className="form-label">Major</label>
-                                        <input
-                                            type="text"
-                                            name="majorOrIndustry"
-                                            className="form-input"
-                                            placeholder="Computer Science"
-                                            value={formData.majorOrIndustry}
-                                            onChange={handleInputChange}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label className="form-label">Skills (comma-separated)</label>
-                                        <input
-                                            type="text"
-                                            name="skills"
-                                            className="form-input"
-                                            placeholder="Python, JavaScript, React"
-                                            value={formData.skills}
-                                            onChange={handleInputChange}
-                                        />
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    {/* ✅ NEW LOCATION FIELD FOR EMPLOYERS */}
-                                    <div className="form-group">
-                                        <label className="form-label">Location</label>
-                                        <input
-                                            type="text"
-                                            name="location"
-                                            className="form-input"
-                                            placeholder="San Francisco, CA"
-                                            value={formData.location}
-                                            onChange={handleInputChange}
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label className="form-label">Website</label>
-                                        <input
-                                            type="url"
-                                            name="website"
-                                            className="form-input"
-                                            placeholder="https://yourcompany.com"
-                                            value={formData.website}
-                                            onChange={handleInputChange}
-                                        />
-                                    </div>
-                                </>
-                            )}
-
-                            <div className="form-group">
-                                <label className="form-label">
-                                    {activeTab === 'student' ? 'Job Preferences (comma-separated)' : 'Company Description'}
-                                </label>
-                                <input
-                                    type="text"
-                                    name="jobPreferencesOrDescription"
-                                    className="form-input"
-                                    placeholder={
-                                        activeTab === 'student'
-                                            ? 'Software Engineering, Data Science'
-                                            : 'Brief description...'
-                                    }
-                                    value={formData.jobPreferencesOrDescription}
-                                    onChange={handleInputChange}
-                                />
-                            </div>
-                        </>
-                    )}
-
-                    <button type="submit" className="btn-primary" disabled={loading}>
-                        {loading ? 'Please wait...' : (isLogin ? 'Login' : 'Create Account')}
+                {/* Tabs */}
+                <div className="tabs">
+                    <button
+                        className={`tab ${activeTab === 'student' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('student')}
+                    >
+                        Student
                     </button>
+                    <button
+                        className={`tab ${activeTab === 'employer' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('employer')}
+                    >
+                        Employer
+                    </button>
+                </div>
 
-                    <p className="login-link">
-                        {isLogin ? (
+                {/* Toggle Login/Register */}
+                <div className="auth-toggle">
+                    <button
+                        className={`toggle-btn ${isLogin ? 'active' : ''}`}
+                        onClick={() => setIsLogin(true)}
+                    >
+                        Login
+                    </button>
+                    <button
+                        className={`toggle-btn ${!isLogin ? 'active' : ''}`}
+                        onClick={() => setIsLogin(false)}
+                    >
+                        Register
+                    </button>
+                </div>
+
+                {error && <div className="error-message">{error}</div>}
+
+                {/* Login Form */}
+                {isLogin ? (
+                    <form onSubmit={handleLogin} className="login-form">
+                        <div className="form-group">
+                            <label className="form-label">Email</label>
+                            <input
+                                type="email"
+                                name="email"
+                                className="form-input"
+                                placeholder="Enter your email"
+                                value={loginData.email}
+                                onChange={handleLoginChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Password</label>
+                            <input
+                                type="password"
+                                name="password"
+                                className="form-input"
+                                placeholder="Enter your password"
+                                value={loginData.password}
+                                onChange={handleLoginChange}
+                                required
+                            />
+                        </div>
+
+                        <button type="submit" className="btn-primary" disabled={loading}>
+                            {loading ? 'Logging in...' : 'Login'}
+                        </button>
+                    </form>
+                ) : (
+                    /* Register Form */
+                    <form onSubmit={handleRegister} className="login-form">
+                        <div className="form-group">
+                            <label className="form-label">Email</label>
+                            <input
+                                type="email"
+                                name="email"
+                                className="form-input"
+                                placeholder="Enter your email"
+                                value={registerData.email}
+                                onChange={handleRegisterChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Password</label>
+                            <input
+                                type="password"
+                                name="password"
+                                className="form-input"
+                                placeholder="Create a password"
+                                value={registerData.password}
+                                onChange={handleRegisterChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="form-label">Confirm Password</label>
+                            <input
+                                type="password"
+                                name="confirmPassword"
+                                className="form-input"
+                                placeholder="Confirm your password"
+                                value={registerData.confirmPassword}
+                                onChange={handleRegisterChange}
+                                required
+                            />
+                        </div>
+
+                        {activeTab === 'student' ? (
                             <>
-                                Don't have an account?{' '}
-                                <a href="#" onClick={(e) => { e.preventDefault(); setIsLogin(false); }}>
-                                    Sign up
-                                </a>
+                                <div className="form-group">
+                                    <label className="form-label">Full Name</label>
+                                    <input
+                                        type="text"
+                                        name="full_name"
+                                        className="form-input"
+                                        placeholder="Enter your full name"
+                                        value={registerData.full_name}
+                                        onChange={handleRegisterChange}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">School / University</label>
+                                    <input
+                                        type="text"
+                                        name="school"
+                                        className="form-input"
+                                        placeholder="Enter your school"
+                                        value={registerData.school}
+                                        onChange={handleRegisterChange}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Major</label>
+                                    <input
+                                        type="text"
+                                        name="major"
+                                        className="form-input"
+                                        placeholder="Enter your major"
+                                        value={registerData.major}
+                                        onChange={handleRegisterChange}
+                                    />
+                                </div>
+
+                                {/* Skills Selection */}
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        Skills * (Select at least 1)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-input search-input"
+                                        placeholder="Search skills..."
+                                        value={skillSearchQuery}
+                                        onChange={(e) => setSkillSearchQuery(e.target.value)}
+                                    />
+                                    <div className="selected-tags">
+                                        {selectedSkills.map(skill => (
+                                            <span key={skill} className="tag selected">
+                                                {skill}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleSkillToggle(skill)}
+                                                    className="tag-remove"
+                                                >
+                                                    ×
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <div className="tag-list">
+                                        {filteredSkills.slice(0, 20).map(skill => (
+                                            !selectedSkills.includes(skill) && (
+                                                <span
+                                                    key={skill}
+                                                    className="tag"
+                                                    onClick={() => handleSkillToggle(skill)}
+                                                >
+                                                    {skill}
+                                                </span>
+                                            )
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Job Preferences Selection */}
+                                <div className="form-group">
+                                    <label className="form-label">
+                                        Job Preferences * (Select at least 1)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-input search-input"
+                                        placeholder="Search job preferences..."
+                                        value={prefSearchQuery}
+                                        onChange={(e) => setPrefSearchQuery(e.target.value)}
+                                    />
+                                    <div className="selected-tags">
+                                        {selectedPreferences.map(pref => (
+                                            <span key={pref} className="tag selected">
+                                                {pref}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handlePreferenceToggle(pref)}
+                                                    className="tag-remove"
+                                                >
+                                                    ×
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <div className="tag-list">
+                                        {filteredPreferences.slice(0, 20).map(pref => (
+                                            !selectedPreferences.includes(pref) && (
+                                                <span
+                                                    key={pref}
+                                                    className="tag"
+                                                    onClick={() => handlePreferenceToggle(pref)}
+                                                >
+                                                    {pref}
+                                                </span>
+                                            )
+                                        ))}
+                                    </div>
+                                </div>
                             </>
                         ) : (
                             <>
-                                Already have an account?{' '}
-                                <a href="#" onClick={(e) => { e.preventDefault(); setIsLogin(true); }}>
-                                    Log in
-                                </a>
+                                <div className="form-group">
+                                    <label className="form-label">Company Name</label>
+                                    <input
+                                        type="text"
+                                        name="company_name"
+                                        className="form-input"
+                                        placeholder="Enter company name"
+                                        value={registerData.company_name}
+                                        onChange={handleRegisterChange}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Industry</label>
+                                    <input
+                                        type="text"
+                                        name="industry"
+                                        className="form-input"
+                                        placeholder="Enter industry"
+                                        value={registerData.industry}
+                                        onChange={handleRegisterChange}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Location</label>
+                                    <input
+                                        type="text"
+                                        name="location"
+                                        className="form-input"
+                                        placeholder="Enter location"
+                                        value={registerData.location}
+                                        onChange={handleRegisterChange}
+                                    />
+                                </div>
                             </>
                         )}
-                    </p>
-                </form>
+
+                        <button type="submit" className="btn-primary" disabled={loading}>
+                            {loading ? 'Creating Account...' : 'Create Account'}
+                        </button>
+                    </form>
+                )}
             </div>
         </div>
     );
