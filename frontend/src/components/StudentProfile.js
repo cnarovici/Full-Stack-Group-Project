@@ -140,15 +140,13 @@ const StudentProfile = () => {
                 padding: '20px 10px'
             }}>
                 {/* Profile Header */}
-                <div style={{ marginBottom: '20px' }}>
-                    <div className="profile-header">
-                        <div className="profile-initial-circle">
-                            {getInitials(profile.full_name)}
-                        </div>
-                        <h2 className="profile-name">{profile.full_name}</h2>
-                        <div className="personal-details">
-                            <p>{profile.major} • {profile.school}</p>
-                        </div>
+                <div className="profile-header">
+                    <div className="profile-initial-circle">
+                        {getInitials(profile.full_name)}
+                    </div>
+                    <h2 className="profile-name">{profile.full_name}</h2>
+                    <div className="personal-details">
+                        <p>{profile.major} • {profile.school}</p>
                     </div>
                 </div>
 
@@ -238,7 +236,7 @@ const StudentProfile = () => {
                 {/* Action Buttons */}
                 <div className="back-button-container">
                     <button 
-                        onClick={() => navigate('/student/edit-profile')} 
+                        onClick={() => navigate('/student/profile/edit')}  // ✅ FIXED
                         className="edit-profile-button"
                     >
                         Edit Profile

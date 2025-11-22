@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-// Auth Pages (Your existing components)
+// Auth Pages
 import LoadingScreen from './components/LoadingScreen';
 import LoginPage from './components/LoginPage';
 
@@ -14,14 +14,14 @@ import EventSearchPage from './components/EventSearchPage';
 import BrowseEvents from './components/BrowseEvents';
 import ViewEvent from './components/ViewEvent';
 import SavedJobs from './components/SavedJobs';
-import StudentMessages from './components/StudentMessages';
+import ConversationList from './components/ConversationList';
+import ConversationThread from './components/ConversationThread';
 
 // Employer Pages
 import EmployerDashboard from './components/EmployerDashboard';
 import EmployerProfile from './components/EmployerProfile';
 import EmployerEditProfile from './components/EmployerEditProfile';
 import EmployerPostEvents from './components/EmployerPostEvents';
-import EmployerMessages from './components/EmployerMessages';
 import EventApplicants from './components/EventApplicants';
 
 import './App.css';
@@ -136,7 +136,15 @@ function App() {
             path="/student/messages"
             element={
               <ProtectedRoute requiredType="student">
-                <StudentMessages />
+                <ConversationList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/conversation/:conversationId"
+            element={
+              <ProtectedRoute requiredType="student">
+                <ConversationThread />
               </ProtectedRoute>
             }
           />
@@ -178,7 +186,15 @@ function App() {
             path="/employer/messages"
             element={
               <ProtectedRoute requiredType="employer">
-                <EmployerMessages />
+                <ConversationList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/employer/conversation/:conversationId"
+            element={
+              <ProtectedRoute requiredType="employer">
+                <ConversationThread />
               </ProtectedRoute>
             }
           />

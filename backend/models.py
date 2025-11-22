@@ -187,8 +187,15 @@ class Message(db.Model):
     __tablename__ = 'messages'
     
     id = db.Column(db.Integer, primary_key=True)
-    sender_id = db.Column(db.Integer, db.ForeignKey('student_profiles.id'), nullable=False)
-    recipient_id = db.Column(db.Integer, db.ForeignKey('employer_profiles.id'), nullable=False)
+    
+    # For student messages
+    sender_id = db.Column(db.Integer, db.ForeignKey('student_profiles.id'), nullable=True)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('employer_profiles.id'), nullable=True)
+    
+    # For employer messages (replies)
+    employer_sender_id = db.Column(db.Integer, db.ForeignKey('employer_profiles.id'), nullable=True)
+    student_recipient_id = db.Column(db.Integer, db.ForeignKey('student_profiles.id'), nullable=True)
+    
     subject = db.Column(db.String(200))
     message_text = db.Column(db.Text, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
@@ -197,16 +204,49 @@ class Message(db.Model):
     # Relationships
     sender = db.relationship('StudentProfile', foreign_keys=[sender_id], backref='sent_messages')
     recipient = db.relationship('EmployerProfile', foreign_keys=[recipient_id], backref='received_messages')
+    employer_sender = db.relationship('EmployerProfile', foreign_keys=[employer_sender_id], backref='employer_sent_messages')
+    student_recipient = db.relationship('StudentProfile', foreign_keys=[student_recipient_id], backref='student_received_messages')
     
     def to_dict(self):
-        return {
+        data = {
             'id': self.id,
-            'sender_id': self.sender_id,
-            'sender_name': self.sender.full_name if self.sender else 'Unknown',
-            'recipient_id': self.recipient_id,
-            'recipient_name': self.recipient.company_name if self.recipient else 'Unknown',
             'subject': self.subject,
             'message_text': self.message_text,
             'is_read': self.is_read,
             'created_at': self.created_at.isoformat()
         }
+        
+        # Determine sender
+        if self.sender_id:
+            # Student sent this message
+            data['sender'] = {
+                'type': 'student',
+                'id': self.sender.id,
+                'name': self.sender.full_name or 'Student'
+            }
+        elif self.employer_sender_id:
+            # Employer sent this message
+            data['sender'] = {
+                'type': 'employer',
+                'id': self.employer_sender.id,
+                'name': self.employer_sender.company_name
+            }
+        
+        # Determine recipient
+        if self.recipient_id:
+            # Employer is recipient
+            data['recipient'] = {
+                'type': 'employer',
+                'id': self.recipient.id,
+                'company_name': self.recipient.company_name,
+                'name': self.recipient.company_name
+            }
+        elif self.student_recipient_id:
+            # Student is recipient
+            data['recipient'] = {
+                'type': 'student',
+                'id': self.student_recipient.id,
+                'name': self.student_recipient.full_name or 'Student'
+            }
+        
+        return data

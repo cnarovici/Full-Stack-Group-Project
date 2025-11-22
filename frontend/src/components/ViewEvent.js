@@ -31,6 +31,7 @@ const ViewEvent = () => {
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('✅ Event details:', data);
                 setEvent(data);
             } else {
                 console.error('Failed to fetch event');
@@ -45,6 +46,8 @@ const ViewEvent = () => {
     const checkRsvpStatus = async () => {
         try {
             const token = localStorage.getItem('token');
+            console.log('🔍 Checking RSVP status for event:', eventId);
+            
             const response = await fetch(`${API_BASE_URL}/events/${eventId}/rsvp/status`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -53,6 +56,7 @@ const ViewEvent = () => {
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('✅ RSVP Status:', data);
                 setIsRsvped(data.is_rsvped);
             }
         } catch (err) {
@@ -72,6 +76,7 @@ const ViewEvent = () => {
             });
 
             if (response.ok) {
+                console.log('✅ RSVP toggled');
                 setIsRsvped(!isRsvped);
             }
         } catch (err) {
@@ -84,30 +89,42 @@ const ViewEvent = () => {
         if (!messageText.trim()) return;
 
         setMessageSending(true);
+        console.log('📤 Sending message...');
+        
         try {
             const token = localStorage.getItem('token');
+            const payload = {
+                recipient_id: event.employer.id,
+                subject: `Inquiry about ${event.title}`,
+                message_text: messageText
+            };
+
+            console.log('📦 Payload:', payload);
+
             const response = await fetch(`${API_BASE_URL}/messages`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    recipient_id: event.employer.id,
-                    subject: `Inquiry about ${event.title}`,
-                    message_text: messageText
-                })
+                body: JSON.stringify(payload)
             });
 
+            console.log('📥 Response status:', response.status);
+
             if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Message sent:', data);
                 setShowMessageModal(false);
                 setMessageText('');
                 alert('Message sent successfully!');
             } else {
-                alert('Failed to send message');
+                const errorData = await response.json();
+                console.error('❌ Failed to send message:', errorData);
+                alert(`Failed to send message: ${errorData.message || 'Unknown error'}`);
             }
         } catch (err) {
-            console.error('Error sending message:', err);
+            console.error('❌ Error sending message:', err);
             alert('Failed to send message');
         } finally {
             setMessageSending(false);
@@ -231,7 +248,7 @@ const ViewEvent = () => {
                     )}
                 </div>
 
-                {/* Action Buttons */}
+                {/* Action Buttons - ALWAYS SHOW MESSAGE BUTTON IF RSVP'D */}
                 <div className="event-actions-section">
                     <button 
                         className={`rsvp-button ${isRsvped ? 'rsvped' : ''}`}
@@ -240,6 +257,7 @@ const ViewEvent = () => {
                         {isRsvped ? '✓ Registered' : 'Register for Event'}
                     </button>
 
+                    {/* ✅ ALWAYS SHOW MESSAGE BUTTON IF RSVP'D */}
                     {isRsvped && (
                         <button 
                             className="message-button"

@@ -12,7 +12,10 @@ const StudentDashboard = () => {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [userName, setUserName] = useState('');
-    const [unreadCount, setUnreadCount] = useState(0); // ← ADD THIS
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [recommendations, setRecommendations] = useState([]); // ← ADD THIS
+    const [loadingRecommendations, setLoadingRecommendations] = useState(true); // ← ADD THIS
+    const [rsvpStatus, setRsvpStatus] = useState({}); // ← ADD THIS
 
     useEffect(() => {
         // Verify authentication
@@ -37,10 +40,99 @@ const StudentDashboard = () => {
             console.error('Error parsing user:', e);
         }
 
-        fetchUnreadMessages(); // ← ADD THIS
+        fetchUnreadMessages();
+        fetchRecommendations(); // ← ADD THIS
     }, [navigate]);
 
     // ← ADD THIS FUNCTION
+    const fetchRecommendations = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE_URL}/events/recommendations`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Recommendations:', data);
+                setRecommendations(data);
+                
+                // Check RSVP status for recommendations
+                if (data.length > 0) {
+                    checkRsvpStatus(data.map(event => event.id));
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching recommendations:', err);
+        } finally {
+            setLoadingRecommendations(false);
+        }
+    };
+
+    // ← ADD THIS FUNCTION
+    const checkRsvpStatus = async (eventIds) => {
+        try {
+            const token = localStorage.getItem('token');
+            
+            const statusChecks = await Promise.all(
+                eventIds.map(async (id) => {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/events/${id}/rsvp/status`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            return { id, isRsvped: data.is_rsvped };
+                        }
+                        return { id, isRsvped: false };
+                    } catch (err) {
+                        return { id, isRsvped: false };
+                    }
+                })
+            );
+
+            const statusMap = {};
+            statusChecks.forEach(({ id, isRsvped }) => {
+                statusMap[id] = isRsvped;
+            });
+            
+            setRsvpStatus(statusMap);
+        } catch (err) {
+            console.error('Error checking RSVP status:', err);
+        }
+    };
+
+    // ← ADD THIS FUNCTION
+    const handleRsvp = async (eventId, e) => {
+        e.stopPropagation();
+        
+        try {
+            const token = localStorage.getItem('token');
+            const isCurrentlyRsvped = rsvpStatus[eventId];
+
+            const response = await fetch(`${API_BASE_URL}/events/${eventId}/rsvp`, {
+                method: isCurrentlyRsvped ? 'DELETE' : 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                console.log('✅ RSVP updated');
+                setRsvpStatus(prev => ({
+                    ...prev,
+                    [eventId]: !isCurrentlyRsvped
+                }));
+            }
+        } catch (err) {
+            console.error('RSVP error:', err);
+        }
+    };
+
     const fetchUnreadMessages = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -129,10 +221,14 @@ const StudentDashboard = () => {
         navigate(path);
     };
 
-    // ← ADD THIS HANDLER
     const handleViewMessages = () => {
         console.log('🔘 Navigating to messages');
         navigate('/student/messages');
+    };
+
+    // ← ADD THIS FUNCTION
+    const handleViewEventDetails = (eventId) => {
+        navigate(`/student/events/${eventId}`);
     };
 
     return (
@@ -142,7 +238,6 @@ const StudentDashboard = () => {
                 <div className="header-top">
                     <h2>Welcome back{userName ? `, ${userName}` : ''}!</h2>
                     <div className="header-actions">
-                        {/* ← ADD THIS MESSAGES BUTTON */}
                         <button className="messages-button" onClick={handleViewMessages}>
                             <FaEnvelope />
                             {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
@@ -233,42 +328,61 @@ const StudentDashboard = () => {
                 </div>
             </div>
 
-            {/* Recommended Section */}
+            {/* Recommended Section - NOW DYNAMIC */}
             <div className="recommended-section">
                 <h3 className="recommended-title">Recommended For You</h3>
-                <div className="recommended-list">
-                    <div className="event-container">
-                        <h4 className="event-title">Tech Career Fair 2025</h4>
-                        <div className="event-info">
-                            <div className="event-details">
-                                <FaMapMarkerAlt className="event-icon" />
-                                <span>Virtual</span>
-                            </div>
-                            <div className="event-details">
-                                <FaCalendarAlt className="event-icon" />
-                                <span>Oct 25, 2025</span>
-                            </div>
-                        </div>
-                        <button className="event-type-btn">Software Engineering</button>
-                        <span className="match-badge">95% Match</span>
+                
+                {loadingRecommendations ? (
+                    <div className="loading-recommendations">
+                        <p>Loading recommendations...</p>
                     </div>
-
-                    <div className="event-container">
-                        <h4 className="event-title">Google Campus Recruiting</h4>
-                        <div className="event-info">
-                            <div className="event-details">
-                                <FaMapMarkerAlt className="event-icon" />
-                                <span>Mountain View, CA</span>
+                ) : recommendations.length > 0 ? (
+                    <div className="recommended-list">
+                        {recommendations.map((event) => (
+                            <div key={event.id} className="event-container">
+                                <h4 className="event-title">{event.title}</h4>
+                                <div className="event-info">
+                                    <div className="event-details">
+                                        <FaMapMarkerAlt className="event-icon" />
+                                        <span>{event.location}</span>
+                                    </div>
+                                    <div className="event-details">
+                                        <FaCalendarAlt className="event-icon" />
+                                        <span>{new Date(event.event_date).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric'
+                                        })}</span>
+                                    </div>
+                                </div>
+                                {event.tags && event.tags.length > 0 && (
+                                    <button className="event-type-btn">{event.tags[0]}</button>
+                                )}
+                                <span className="match-badge">{event.match_percentage}% Match</span>
+                                
+                                {/* Action Buttons */}
+                                <div className="event-actions-row">
+                                    <button 
+                                        className={`event-rsvp-btn ${rsvpStatus[event.id] ? 'rsvped' : ''}`}
+                                        onClick={(e) => handleRsvp(event.id, e)}
+                                    >
+                                        {rsvpStatus[event.id] ? '✓ Registered' : 'RSVP'}
+                                    </button>
+                                    <button 
+                                        className="event-view-btn"
+                                        onClick={() => handleViewEventDetails(event.id)}
+                                    >
+                                        View Details
+                                    </button>
+                                </div>
                             </div>
-                            <div className="event-details">
-                                <FaCalendarAlt className="event-icon" />
-                                <span>Nov 2, 2025</span>
-                            </div>
-                        </div>
-                        <button className="event-type-btn">Data Science</button>
-                        <span className="match-badge">85% Match</span>
+                        ))}
                     </div>
-                </div>
+                ) : (
+                    <div className="no-recommendations">
+                        <p>No recommendations available. Update your profile to get personalized suggestions!</p>
+                    </div>
+                )}
             </div>
         </div>
     );

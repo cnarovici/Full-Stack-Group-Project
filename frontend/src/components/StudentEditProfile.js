@@ -1,41 +1,51 @@
 import React, { useState, useEffect } from 'react';
+import { FaFileAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import './StudentProfile.css';
-import { FaFileAlt, FaEdit } from 'react-icons/fa';
 
 const API_BASE_URL = 'http://localhost:5001/api';
 
 const StudentProfile = () => {
     const navigate = useNavigate();
-    const [profile, setProfile] = useState(null);
-    const [savedEvents, setSavedEvents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [profile, setProfile] = useState(null);
+    const [savedEvents, setSavedEvents] = useState([]); // ✅ NOW DYNAMIC
 
     useEffect(() => {
         fetchProfile();
-        fetchSavedEvents();
+        fetchSavedEvents(); // ✅ ADD THIS
     }, []);
 
     const fetchProfile = async () => {
         try {
             const token = localStorage.getItem('token');
+            if (!token) {
+                navigate('/');
+                return;
+            }
+
             const response = await fetch(`${API_BASE_URL}/profile/student`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                setProfile(data);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch profile');
             }
+
+            setProfile(data);
         } catch (err) {
-            console.error('Error fetching profile:', err);
+            setError(err.message);
         } finally {
             setLoading(false);
         }
     };
 
+    // ✅ ADD THIS FUNCTION
     const fetchSavedEvents = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -50,7 +60,7 @@ const StudentProfile = () => {
             if (response.ok) {
                 const data = await response.json();
                 console.log('✅ Saved events:', data);
-                setSavedEvents(data.slice(0, 3)); // Show only first 3
+                setSavedEvents(data.slice(0, 5)); // Show first 5
             } else {
                 console.error('❌ Failed to fetch saved events');
             }
@@ -59,7 +69,8 @@ const StudentProfile = () => {
         }
     };
 
-    const handleUnregister = async (eventId) => {
+    // ✅ ADD THIS FUNCTION
+    const handleDelete = async (eventId) => {
         if (!window.confirm('Are you sure you want to unregister from this event?')) {
             return;
         }
@@ -76,7 +87,7 @@ const StudentProfile = () => {
 
             if (response.ok) {
                 console.log('✅ Unregistered successfully');
-                // Refresh the saved events
+                // Refresh saved events
                 fetchSavedEvents();
             } else {
                 alert('Failed to unregister from event');
@@ -87,119 +98,203 @@ const StudentProfile = () => {
         }
     };
 
+    // ✅ ADD THIS FUNCTION
     const handleViewEvent = (eventId) => {
         navigate(`/student/events/${eventId}`);
     };
 
+    const getInitials = (name) => {
+        if (!name) return 'U';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    };
+
     if (loading) {
         return (
-            <div className="profile-page">
-                <div className="loading-state">
-                    <div className="spinner"></div>
-                    <p>Loading profile...</p>
-                </div>
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                fontSize: '24px'
+            }}>
+                Loading...
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                fontSize: '24px',
+                padding: '20px',
+                textAlign: 'center'
+            }}>
+                <p>Error: {error}</p>
+                <button 
+                    onClick={() => navigate('/student/dashboard')}
+                    style={{
+                        marginTop: '20px',
+                        padding: '12px 24px',
+                        background: 'white',
+                        color: '#667eea',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                    }}
+                >
+                    Back to Dashboard
+                </button>
             </div>
         );
     }
 
     if (!profile) {
         return (
-            <div className="profile-page">
-                <div className="error-state">
-                    <p>Profile not found</p>
-                </div>
+            <div style={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                fontSize: '24px'
+            }}>
+                No profile found
             </div>
         );
     }
 
     return (
-        <div className="profile-page">
-            <div className="profile-container">
+        <div style={{ 
+            minHeight: '100vh', 
+            backgroundColor: '#f5f7fa',
+            padding: '0',
+            margin: '0'
+        }}>
+            <div style={{
+                maxWidth: '700px',
+                margin: '0 auto',
+                padding: '20px 10px'
+            }}>
                 {/* Profile Header */}
-                <div className="profile-header">
-                    <div className="student-avatar">
-                        {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : 'S'}
-                    </div>
-                    <div className="student-info">
-                        <h1>{profile.full_name || 'Student'}</h1>
-                        <p className="school">{profile.school || 'University'}</p>
-                        <p className="major">{profile.major || 'Major'}</p>
+                <div style={{ marginBottom: '20px' }}>
+                    <div className="profile-header">
+                        <div className="profile-initial-circle">
+                            {getInitials(profile.full_name)}
+                        </div>
+                        <h2 className="profile-name">{profile.full_name}</h2>
+                        <div className="personal-details">
+                            <p>{profile.major} • {profile.school}</p>
+                        </div>
                     </div>
                 </div>
 
                 {/* Resume Section */}
-                <div className="profile-section">
-                    <h2>My Resume</h2>
-                    <div className="resume-box">
-                        <FaFileAlt className="resume-icon" />
-                        <p>{profile.resume_url ? 'Resume Uploaded' : 'No Resume Uploaded'}</p>
-                        <button 
-                            className="upload-resume-btn"
-                            onClick={() => navigate('/student/resume')}
-                        >
-                            {profile.resume_url ? 'Update Resume' : 'Upload Resume'}
-                        </button>
+                <div className="resume-container">
+                    <h3>My Resume</h3>
+                    <div className="resume-details">
+                        <div className="resume-file-info">
+                            <FaFileAlt className="resume-icon" />
+                            <span className="resume-filename">
+                                {profile.resume_url ? 'Resume Available' : 'No Resume Uploaded'}
+                            </span>
+                        </div>
+                        {profile.resume_url ? (
+                            <button
+                                className="resume-button"
+                                onClick={() => window.open(profile.resume_url, "_blank")}
+                            >
+                                View Resume
+                            </button>
+                        ) : (
+                            <button
+                                className="resume-button"
+                                onClick={() => navigate('/student/resume')}
+                            >
+                                Upload Resume
+                            </button>
+                        )}
                     </div>
                 </div>
 
-                {/* Skills & Interests */}
-                <div className="profile-section">
-                    <h2>Skills & Interests</h2>
-                    <div className="tags-container">
+                {/* Skills Section */}
+                <div className="skills-container">
+                    <h3>Skills & Interests</h3>
+                    <div className="skills-list">
                         {profile.skills && profile.skills.length > 0 ? (
                             profile.skills.map((skill, index) => (
-                                <span key={index} className="tag">{skill}</span>
+                                <button key={index} className="skill-button">{skill}</button>
                             ))
                         ) : (
-                            <p className="no-data">No skills added yet</p>
+                            <p style={{ color: '#666', fontSize: '14px', margin: '0' }}>No skills added yet</p>
                         )}
                     </div>
                 </div>
 
-                {/* Job Preferences */}
-                <div className="profile-section">
-                    <h2>Job Preferences</h2>
-                    <div className="tags-container">
+                {/* Job Preferences Section */}
+                <div className="skills-container">
+                    <h3>Job Preferences</h3>
+                    <div className="skills-list">
                         {profile.job_preferences && profile.job_preferences.length > 0 ? (
                             profile.job_preferences.map((pref, index) => (
-                                <span key={index} className="tag">{pref}</span>
+                                <button key={index} className="skill-button">{pref}</button>
                             ))
                         ) : (
-                            <p className="no-data">No job preferences added yet</p>
+                            <p style={{ color: '#666', fontSize: '14px', margin: '0' }}>No job preferences added yet</p>
                         )}
                     </div>
                 </div>
 
-                {/* Saved Events */}
-                <div className="profile-section">
-                    <div className="section-header">
-                        <h2>Saved Events</h2>
+                {/* Saved Events Section - NOW DYNAMIC */}
+                <div className="saved-events-container">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <h3 style={{ margin: 0 }}>Saved Events</h3>
                         {savedEvents.length > 0 && (
-                            <button 
-                                className="view-all-btn"
+                            <button
                                 onClick={() => navigate('/student/saved')}
+                                style={{
+                                    padding: '8px 16px',
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer'
+                                }}
                             >
                                 View All
                             </button>
                         )}
                     </div>
-                    
+
                     {savedEvents.length > 0 ? (
-                        <div className="saved-events-preview">
+                        <div className="saved-events-slider">
                             {savedEvents.map((event) => (
-                                <div key={event.id} className="event-preview-card">
-                                    <h3>{event.title}</h3>
-                                    <p className="event-company">{event.employer?.company_name || 'Company'}</p>
-                                    <div className="event-preview-actions">
-                                        <button 
+                                <div key={event.id} className="event-card">
+                                    <div className="event-name">{event.title}</div>
+                                    <div className="event-organizer">{event.employer?.company_name || 'Company'}</div>
+                                    <div className="event-actions">
+                                        <button
                                             className="view-btn"
                                             onClick={() => handleViewEvent(event.id)}
                                         >
                                             View
                                         </button>
-                                        <button 
-                                            className="remove-btn"
-                                            onClick={() => handleUnregister(event.id)}
+                                        <button
+                                            className="delete-btn"
+                                            onClick={() => handleDelete(event.id)}
                                         >
                                             Remove
                                         </button>
@@ -208,21 +303,23 @@ const StudentProfile = () => {
                             ))}
                         </div>
                     ) : (
-                        <p className="no-data">No saved events yet</p>
+                        <p style={{ color: '#666', fontSize: '14px', textAlign: 'center', margin: '20px 0' }}>
+                            No saved events yet. Register for events to see them here!
+                        </p>
                     )}
                 </div>
 
                 {/* Action Buttons */}
-                <div className="profile-actions">
+                <div className="back-button-container">
                     <button 
-                        className="edit-profile-btn"
-                        onClick={() => navigate('/student/profile/edit')}
+                        onClick={() => navigate('/student/profile/edit')} 
+                        className="edit-profile-button"
                     >
-                        <FaEdit /> Edit Profile
+                        Edit Profile
                     </button>
                     <button 
-                        className="back-dashboard-btn"
-                        onClick={() => navigate('/student/dashboard')}
+                        onClick={() => navigate('/student/dashboard')} 
+                        className="back-button"
                     >
                         Back to Dashboard
                     </button>
