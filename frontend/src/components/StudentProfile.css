@@ -262,6 +262,7 @@
     color: white;
 }
 
+<<<<<<< HEAD
 /* ============= ACTION BUTTONS ============= */
 .back-button-container {
     display: flex;
@@ -305,6 +306,54 @@
 .edit-profile-page {
     min-height: 100vh;
     background: #f5f7fa;
+=======
+
+.profile-action-button {
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.profile-action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .profile-wrapper {
+    padding: 15px 10px;
+  }
+
+  .profile-header {
+    padding: 25px 15px;
+  }
+
+  .profile-initial-circle {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+  }
+
+  .profile-name {
+    font-size: 1.3rem;
+  }
+
+  .personal-details {
+    font-size: 0.9rem;
+  }
+
+  .resume-container,
+  .skills-container,
+  .saved-events-container {
+>>>>>>> branch4
     padding: 20px;
 }
 
