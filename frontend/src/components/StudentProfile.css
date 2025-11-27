@@ -275,17 +275,8 @@ body {
   transform: translateY(-1px);
 }
 
-/* ACTION BUTTONS */
-.back-button-container {
-  margin-top: 30px;
-  margin-bottom: 20px;
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
 
-.edit-profile-button {
+.profile-action-button {
   padding: 12px 28px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -298,26 +289,9 @@ body {
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.edit-profile-button:hover {
+.profile-action-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.back-button {
-  padding: 12px 28px;
-  background: white;
-  border: 2px solid #667eea;
-  color: #667eea;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.back-button:hover {
-  background: #f0f4ff;
-  transform: translateY(-2px);
 }
 
 /* RESPONSIVE */

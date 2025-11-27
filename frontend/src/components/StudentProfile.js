@@ -93,17 +93,8 @@ const StudentProfile = () => {
                 <p>Error: {error}</p>
                 <button 
                     onClick={() => navigate('/student/dashboard')}
-                    style={{
-                        marginTop: '20px',
-                        padding: '12px 24px',
-                        background: 'white',
-                        color: '#667eea',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        cursor: 'pointer'
-                    }}
+                    className="profile-action-button"
+                    style={{ marginTop: '20px' }}
                 >
                     Back to Dashboard
                 </button>
@@ -149,6 +140,22 @@ const StudentProfile = () => {
                         <div className="personal-details">
                             <p>{profile.major} • {profile.school}</p>
                         </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="back-button-container" style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+                        <button 
+                            onClick={() => navigate('/student/edit-profile')} 
+                            className="profile-action-button"
+                        >
+                            Edit Profile
+                        </button>
+                        <button 
+                            onClick={() => navigate('/student/dashboard')} 
+                            className="profile-action-button"
+                        >
+                            Back to Dashboard
+                        </button>
                     </div>
                 </div>
 
@@ -233,22 +240,6 @@ const StudentProfile = () => {
                             </div>
                         ))}
                     </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="back-button-container">
-                    <button 
-                        onClick={() => navigate('/student/edit-profile')} 
-                        className="edit-profile-button"
-                    >
-                        Edit Profile
-                    </button>
-                    <button 
-                        onClick={() => navigate('/student/dashboard')} 
-                        className="back-button"
-                    >
-                        Back to Dashboard
-                    </button>
                 </div>
             </div>
         </div>

@@ -2,6 +2,8 @@
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 40px 20px;
+
+    
 }
 
 .edit-profile-card {
@@ -24,19 +26,28 @@
 }
 
 .back-button {
-    background: none;
+    padding: 12px 28px;
+    width: 100%;          /* makes it stretch full width of its container */
+    max-width: 180px;     /* optional cap so it doesn’t get too huge */
+    text-align: center;   /* centers the arrow + text */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     border: none;
-    color: #667eea;
-    font-size: 16px;
+    border-radius: 10px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    padding: 8px 0;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .back-button:hover {
-    color: #764ba2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
+
+
+
 
 .edit-form {
     display: flex;
