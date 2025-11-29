@@ -1,23 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { FaFileAlt } from 'react-icons/fa';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './StudentProfile.css';
 
 const API_BASE_URL = 'http://localhost:5001/api';
 
-const StudentProfile = () => {
+// Predefined options (should match backend)
+const PREDEFINED_SKILLS = [
+    'Python', 'JavaScript', 'Java', 'C++', 'React', 'Node.js',
+    'SQL', 'Machine Learning', 'Data Analysis', 'AWS', 'Docker',
+    'Git', 'TypeScript', 'Go', 'Rust', 'Kubernetes'
+];
+
+const JOB_PREFERENCES = [
+    'Software Engineering', 'Data Science', 'Product Management',
+    'UX Design', 'DevOps', 'Machine Learning', 'Frontend Development',
+    'Backend Development', 'Full Stack', 'Mobile Development',
+    'Cloud Engineering', 'Cybersecurity'
+];
+
+const StudentEditProfile = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
-    const [profile, setProfile] = useState(null);
-    const [savedEvents, setSavedEvents] = useState([]); // ✅ NOW DYNAMIC
+    const [success, setSuccess] = useState('');
+    
+    // Form state
+    const [fullName, setFullName] = useState('');
+    const [school, setSchool] = useState('');
+    const [major, setMajor] = useState('');
+    const [selectedSkills, setSelectedSkills] = useState([]);
+    const [selectedPreferences, setSelectedPreferences] = useState([]);
 
-    useEffect(() => {
-        fetchProfile();
-        fetchSavedEvents(); // ✅ ADD THIS
-    }, []);
-
-    const fetchProfile = async () => {
+    const fetchProfile = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -37,75 +52,89 @@ const StudentProfile = () => {
                 throw new Error(data.message || 'Failed to fetch profile');
             }
 
-            setProfile(data);
+            // Populate form with existing data
+            setFullName(data.full_name || '');
+            setSchool(data.school || '');
+            setMajor(data.major || '');
+            setSelectedSkills(data.skills || []);
+            setSelectedPreferences(data.job_preferences || []);
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
+    }, [navigate]);
+
+    useEffect(() => {
+        fetchProfile();
+    }, [fetchProfile]);
+
+    const toggleSkill = (skill) => {
+        setSelectedSkills(prev => 
+            prev.includes(skill)
+                ? prev.filter(s => s !== skill)
+                : [...prev, skill]
+        );
     };
 
-    // ✅ ADD THIS FUNCTION
-    const fetchSavedEvents = async () => {
+    const togglePreference = (pref) => {
+        setSelectedPreferences(prev =>
+            prev.includes(pref)
+                ? prev.filter(p => p !== pref)
+                : [...prev, pref]
+        );
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        setError('');
+        setSuccess('');
+
         try {
             const token = localStorage.getItem('token');
-            console.log('📥 Fetching saved events for profile...');
             
-            const response = await fetch(`${API_BASE_URL}/events/rsvp`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log('✅ Saved events:', data);
-                setSavedEvents(data.slice(0, 5)); // Show first 5
-            } else {
-                console.error('❌ Failed to fetch saved events');
-            }
-        } catch (err) {
-            console.error('Error fetching saved events:', err);
-        }
-    };
-
-    // ✅ ADD THIS FUNCTION
-    const handleDelete = async (eventId) => {
-        if (!window.confirm('Are you sure you want to unregister from this event?')) {
-            return;
-        }
-
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${API_BASE_URL}/events/${eventId}/rsvp`, {
-                method: 'DELETE',
+            const response = await fetch(`${API_BASE_URL}/profile/student`, {
+                method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({
+                    full_name: fullName,
+                    school: school,
+                    major: major,
+                    skills: selectedSkills,
+                    job_preferences: selectedPreferences
+                })
             });
 
-            if (response.ok) {
-                console.log('✅ Unregistered successfully');
-                // Refresh saved events
-                fetchSavedEvents();
-            } else {
-                alert('Failed to unregister from event');
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to update profile');
             }
+
+            // Update localStorage with new name
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                user.full_name = fullName;
+                localStorage.setItem('user', JSON.stringify(user));
+            }
+
+            setSuccess('Profile updated successfully!');
+            
+            // Redirect after short delay
+            setTimeout(() => {
+                navigate('/student/profile');
+            }, 1500);
+
         } catch (err) {
-            console.error('Error unregistering:', err);
-            alert('Failed to unregister from event');
+            setError(err.message);
+        } finally {
+            setSaving(false);
         }
-    };
-
-    // ✅ ADD THIS FUNCTION
-    const handleViewEvent = (eventId) => {
-        navigate(`/student/events/${eventId}`);
-    };
-
-    const getInitials = (name) => {
-        if (!name) return 'U';
-        return name.split(' ').map(n => n[0]).join('').toUpperCase();
     };
 
     if (loading) {
@@ -115,62 +144,11 @@ const StudentProfile = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
+                background: '#f5f7fa',
+                color: '#667eea',
                 fontSize: '24px'
             }}>
                 Loading...
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div style={{
-                minHeight: '100vh',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                fontSize: '24px',
-                padding: '20px',
-                textAlign: 'center'
-            }}>
-                <p>Error: {error}</p>
-                <button 
-                    onClick={() => navigate('/student/dashboard')}
-                    style={{
-                        marginTop: '20px',
-                        padding: '12px 24px',
-                        background: 'white',
-                        color: '#667eea',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        cursor: 'pointer'
-                    }}
-                >
-                    Back to Dashboard
-                </button>
-            </div>
-        );
-    }
-
-    if (!profile) {
-        return (
-            <div style={{
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                fontSize: '24px'
-            }}>
-                No profile found
             </div>
         );
     }
@@ -187,146 +165,194 @@ const StudentProfile = () => {
                 margin: '0 auto',
                 padding: '20px 10px'
             }}>
-                {/* Profile Header */}
-                <div style={{ marginBottom: '20px' }}>
-                    <div className="profile-header">
-                        <div className="profile-initial-circle">
-                            {getInitials(profile.full_name)}
-                        </div>
-                        <h2 className="profile-name">{profile.full_name}</h2>
-                        <div className="personal-details">
-                            <p>{profile.major} • {profile.school}</p>
-                        </div>
-                    </div>
+                {/* Page Title */}
+                <div className="profile-header">
+                    <h2 className="profile-name">Edit Profile</h2>
                 </div>
 
-                {/* Resume Section */}
-                <div className="resume-container">
-                    <h3>My Resume</h3>
-                    <div className="resume-details">
-                        <div className="resume-file-info">
-                            <FaFileAlt className="resume-icon" />
-                            <span className="resume-filename">
-                                {profile.resume_url ? 'Resume Available' : 'No Resume Uploaded'}
-                            </span>
-                        </div>
-                        {profile.resume_url ? (
-                            <button
-                                className="resume-button"
-                                onClick={() => window.open(profile.resume_url, "_blank")}
-                            >
-                                View Resume
-                            </button>
-                        ) : (
-                            <button
-                                className="resume-button"
-                                onClick={() => navigate('/student/resume')}
-                            >
-                                Upload Resume
-                            </button>
-                        )}
+                {error && (
+                    <div style={{
+                        background: '#fee2e2',
+                        color: '#dc2626',
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                        marginBottom: '20px',
+                        fontSize: '14px'
+                    }}>
+                        {error}
                     </div>
-                </div>
-
-                {/* Skills Section */}
-                <div className="skills-container">
-                    <h3>Skills & Interests</h3>
-                    <div className="skills-list">
-                        {profile.skills && profile.skills.length > 0 ? (
-                            profile.skills.map((skill, index) => (
-                                <button key={index} className="skill-button">{skill}</button>
-                            ))
-                        ) : (
-                            <p style={{ color: '#666', fontSize: '14px', margin: '0' }}>No skills added yet</p>
-                        )}
+                )}
+                
+                {success && (
+                    <div style={{
+                        background: '#d1fae5',
+                        color: '#059669',
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                        marginBottom: '20px',
+                        fontSize: '14px'
+                    }}>
+                        {success}
                     </div>
-                </div>
+                )}
 
-                {/* Job Preferences Section */}
-                <div className="skills-container">
-                    <h3>Job Preferences</h3>
-                    <div className="skills-list">
-                        {profile.job_preferences && profile.job_preferences.length > 0 ? (
-                            profile.job_preferences.map((pref, index) => (
-                                <button key={index} className="skill-button">{pref}</button>
-                            ))
-                        ) : (
-                            <p style={{ color: '#666', fontSize: '14px', margin: '0' }}>No job preferences added yet</p>
-                        )}
-                    </div>
-                </div>
-
-                {/* Saved Events Section - NOW DYNAMIC */}
-                <div className="saved-events-container">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                        <h3 style={{ margin: 0 }}>Saved Events</h3>
-                        {savedEvents.length > 0 && (
-                            <button
-                                onClick={() => navigate('/student/saved')}
+                <form onSubmit={handleSubmit}>
+                    {/* Basic Info */}
+                    <div className="skills-container">
+                        <h3>Basic Information</h3>
+                        
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ 
+                                display: 'block', 
+                                marginBottom: '6px', 
+                                fontWeight: '500',
+                                color: '#555',
+                                fontSize: '14px'
+                            }}>
+                                Full Name
+                            </label>
+                            <input
+                                type="text"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                                placeholder="Enter your full name"
+                                required
                                 style={{
-                                    padding: '8px 16px',
-                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                    color: 'white',
-                                    border: 'none',
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    border: '2px solid #e0e0e0',
                                     borderRadius: '8px',
-                                    fontSize: '14px',
-                                    fontWeight: '600',
-                                    cursor: 'pointer'
+                                    fontSize: '15px',
+                                    boxSizing: 'border-box'
                                 }}
-                            >
-                                View All
-                            </button>
-                        )}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ 
+                                display: 'block', 
+                                marginBottom: '6px', 
+                                fontWeight: '500',
+                                color: '#555',
+                                fontSize: '14px'
+                            }}>
+                                School
+                            </label>
+                            <input
+                                type="text"
+                                value={school}
+                                onChange={(e) => setSchool(e.target.value)}
+                                placeholder="Enter your school"
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    border: '2px solid #e0e0e0',
+                                    borderRadius: '8px',
+                                    fontSize: '15px',
+                                    boxSizing: 'border-box'
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '0' }}>
+                            <label style={{ 
+                                display: 'block', 
+                                marginBottom: '6px', 
+                                fontWeight: '500',
+                                color: '#555',
+                                fontSize: '14px'
+                            }}>
+                                Major
+                            </label>
+                            <input
+                                type="text"
+                                value={major}
+                                onChange={(e) => setMajor(e.target.value)}
+                                placeholder="Enter your major"
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    border: '2px solid #e0e0e0',
+                                    borderRadius: '8px',
+                                    fontSize: '15px',
+                                    boxSizing: 'border-box'
+                                }}
+                            />
+                        </div>
                     </div>
 
-                    {savedEvents.length > 0 ? (
-                        <div className="saved-events-slider">
-                            {savedEvents.map((event) => (
-                                <div key={event.id} className="event-card">
-                                    <div className="event-name">{event.title}</div>
-                                    <div className="event-organizer">{event.employer?.company_name || 'Company'}</div>
-                                    <div className="event-actions">
-                                        <button
-                                            className="view-btn"
-                                            onClick={() => handleViewEvent(event.id)}
-                                        >
-                                            View
-                                        </button>
-                                        <button
-                                            className="delete-btn"
-                                            onClick={() => handleDelete(event.id)}
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                </div>
+                    {/* Skills Section */}
+                    <div className="skills-container">
+                        <h3>Skills</h3>
+                        <div className="skills-list">
+                            {PREDEFINED_SKILLS.map((skill) => (
+                                <button
+                                    key={skill}
+                                    type="button"
+                                    className="skill-button"
+                                    onClick={() => toggleSkill(skill)}
+                                    style={{
+                                        background: selectedSkills.includes(skill) 
+                                            ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+                                            : '#f0f4ff',
+                                        color: selectedSkills.includes(skill) ? 'white' : '#667eea',
+                                        border: selectedSkills.includes(skill) ? 'none' : '2px solid #667eea',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {skill}
+                                </button>
                             ))}
                         </div>
-                    ) : (
-                        <p style={{ color: '#666', fontSize: '14px', textAlign: 'center', margin: '20px 0' }}>
-                            No saved events yet. Register for events to see them here!
-                        </p>
-                    )}
-                </div>
+                    </div>
 
-                {/* Action Buttons */}
-                <div className="back-button-container">
-                    <button 
-                        onClick={() => navigate('/student/profile/edit')} 
-                        className="edit-profile-button"
-                    >
-                        Edit Profile
-                    </button>
-                    <button 
-                        onClick={() => navigate('/student/dashboard')} 
-                        className="back-button"
-                    >
-                        Back to Dashboard
-                    </button>
-                </div>
+                    {/* Job Preferences Section */}
+                    <div className="skills-container">
+                        <h3>Job Preferences</h3>
+                        <div className="skills-list">
+                            {JOB_PREFERENCES.map((pref) => (
+                                <button
+                                    key={pref}
+                                    type="button"
+                                    className="skill-button"
+                                    onClick={() => togglePreference(pref)}
+                                    style={{
+                                        background: selectedPreferences.includes(pref) 
+                                            ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+                                            : '#f0f4ff',
+                                        color: selectedPreferences.includes(pref) ? 'white' : '#667eea',
+                                        border: selectedPreferences.includes(pref) ? 'none' : '2px solid #667eea',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {pref}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="back-button-container">
+                        <button
+                            type="submit"
+                            className="edit-profile-button"
+                            disabled={saving}
+                        >
+                            {saving ? 'Saving...' : 'Save Changes'}
+                        </button>
+                        <button
+                            type="button"
+                            className="back-button"
+                            onClick={() => navigate('/student/profile')}
+                            disabled={saving}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );
 };
 
-export default StudentProfile;
+export default StudentEditProfile;

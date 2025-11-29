@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './StudentDashboard.css';
 import { FaFileAlt, FaEdit, FaSearch, FaBriefcase, FaMapMarkerAlt, FaCalendarAlt, FaSignOutAlt, FaEnvelope } from 'react-icons/fa';
@@ -16,6 +16,33 @@ const StudentDashboard = () => {
     const [recommendations, setRecommendations] = useState([]); // ← ADD THIS
     const [loadingRecommendations, setLoadingRecommendations] = useState(true); // ← ADD THIS
     const [rsvpStatus, setRsvpStatus] = useState({}); // ← ADD THIS
+
+    // ← ADD THIS FUNCTION
+    const fetchRecommendations = useCallback(async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE_URL}/events/recommendations`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Recommendations:', data);
+                setRecommendations(data);
+                
+                // Check RSVP status for recommendations
+                if (data.length > 0) {
+                    checkRsvpStatus(data.map(event => event.id));
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching recommendations:', err);
+        } finally {
+            setLoadingRecommendations(false);
+        }
+    }, []);
 
     useEffect(() => {
         // Verify authentication
@@ -41,35 +68,8 @@ const StudentDashboard = () => {
         }
 
         fetchUnreadMessages();
-        fetchRecommendations(); // ← ADD THIS
-    }, [navigate]);
-
-    // ← ADD THIS FUNCTION
-    const fetchRecommendations = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${API_BASE_URL}/events/recommendations`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log('✅ Recommendations:', data);
-                setRecommendations(data);
-                
-                // Check RSVP status for recommendations
-                if (data.length > 0) {
-                    checkRsvpStatus(data.map(event => event.id));
-                }
-            }
-        } catch (err) {
-            console.error('Error fetching recommendations:', err);
-        } finally {
-            setLoadingRecommendations(false);
-        }
-    };
+        fetchRecommendations();
+    }, [navigate, fetchRecommendations]);
 
     // ← ADD THIS FUNCTION
     const checkRsvpStatus = async (eventIds) => {
@@ -157,7 +157,7 @@ const StudentDashboard = () => {
         }
     };
 
-    const fetchSuggestions = async () => {
+    const fetchSuggestions = useCallback(async () => {
         if (searchQuery.trim().length < 2) {
             setSuggestions([]);
             setShowSuggestions(false);
@@ -192,7 +192,7 @@ const StudentDashboard = () => {
             console.error('❌ Error fetching suggestions:', error);
             setSuggestions([]);
         }
-    };
+    }, [searchQuery]);
 
     useEffect(() => {
         const delayDebounce = setTimeout(() => {
@@ -200,7 +200,7 @@ const StudentDashboard = () => {
         }, 300);
 
         return () => clearTimeout(delayDebounce);
-    }, [searchQuery]);
+    }, [fetchSuggestions]);
 
     const handleSuggestionClick = (suggestion) => {
         console.log('🔘 Event clicked:', suggestion);
@@ -296,13 +296,13 @@ const StudentDashboard = () => {
 
                 <div 
                     className="dashboard-card" 
-                    onClick={() => handleCardClick('/student/profile/edit')}
+                    onClick={() => handleCardClick('/student/profile')}
                     role="button"
                     tabIndex={0}
-                    onKeyPress={(e) => e.key === 'Enter' && handleCardClick('/student/profile/edit')}
+                    onKeyPress={(e) => e.key === 'Enter' && handleCardClick('/student/profile')}
                 >
                     <FaEdit className="dashboard-icon" />
-                    <h3>Edit Profile</h3>
+                    <h3>View Profile</h3>
                 </div>
 
                 <div 

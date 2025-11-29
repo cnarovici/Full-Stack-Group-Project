@@ -1,7 +1,7 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_from_directory
 from models import db, User, StudentProfile, EmployerProfile, Event, EventRSVP, StudentSkill, Message, PREDEFINED_SKILLS, JOB_PREFERENCES
-#                                                                                    ^^^^^^^ ADD THIS
 from functools import wraps
+from werkzeug.utils import secure_filename
 import jwt
 from datetime import datetime, timedelta
 import os
@@ -11,6 +11,14 @@ api = Blueprint('api', __name__)
 
 # JWT secret key (use environment variable in production)
 SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+
+# Resume upload configuration
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads', 'resumes')
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def token_required(f):
@@ -1004,3 +1012,74 @@ def get_top_recommendations(current_user):
         result.append(event_dict)
     
     return jsonify(result), 200
+
+
+# ============= RESUME UPLOAD =============
+
+@api.route('/profile/student/resume', methods=['POST'])
+@token_required
+def upload_student_resume(current_user):
+    """Upload a resume file for the student"""
+    try:
+        if current_user.user_type != 'student':
+            return jsonify({'message': 'Only students can upload resumes'}), 403
+        
+        student = current_user.student_profile
+        if not student:
+            return jsonify({'message': 'Student profile not found'}), 404
+        
+        # Check if file was uploaded
+        if 'resume' not in request.files:
+            return jsonify({'message': 'No file provided'}), 400
+        
+        file = request.files['resume']
+        
+        # Check if filename is empty
+        if file.filename == '':
+            return jsonify({'message': 'No file selected'}), 400
+        
+        # Validate file type
+        if not allowed_file(file.filename):
+            return jsonify({'message': 'Invalid file type. Please upload PDF, DOC, or DOCX'}), 400
+        
+        # Check file size (5MB max)
+        file.seek(0, 2)
+        file_size = file.tell()
+        file.seek(0)
+        
+        if file_size > 5 * 1024 * 1024:
+            return jsonify({'message': 'File size must be less than 5MB'}), 400
+        
+        # Generate secure filename
+        original_filename = secure_filename(file.filename)
+        filename = f"student_{current_user.id}_{original_filename}"
+        
+        # Save the file
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(filepath)
+        
+        # Generate URL for the file
+        resume_url = f"http://localhost:5001/api/uploads/resumes/{filename}"
+        
+        # Update student profile
+        student.resume_url = resume_url
+        db.session.commit()
+        
+        print(f"✅ Resume uploaded: {filename}")
+        
+        return jsonify({
+            'message': 'Resume uploaded successfully',
+            'resume_url': resume_url,
+            'filename': filename
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Error uploading resume: {str(e)}")
+        db.session.rollback()
+        return jsonify({'message': f'Error uploading resume: {str(e)}'}), 500
+
+
+@api.route('/uploads/resumes/<filename>')
+def serve_resume(filename):
+    """Serve uploaded resume files"""
+    return send_from_directory(UPLOAD_FOLDER, filename)

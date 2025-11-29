@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FaFileAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import './StudentProfile.css';
@@ -10,20 +10,9 @@ const StudentProfile = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [profile, setProfile] = useState(null);
-    
-    const [savedEvents, setSavedEvents] = useState([
-        { name: "Fall Engineer Expo 2025", organizer: "Google Campus 2025", link: "/events/engineer-expo" },
-        { name: "Tech Careers Fair 2025", organizer: "UIC Career Center", link: "/events/tech-careers-fair" },
-        { name: "AI & Machine Learning Expo", organizer: "Chicago Tech Hub", link: "/events/ai-expo" },
-        { name: "Women in STEM Networking", organizer: "W-STEM Org", link: "/events/women-stem" },
-        { name: "Startup Job Summit", organizer: "Innovate Chicago", link: "/events/startup-summit" },
-    ]);
+    const [savedEvents, setSavedEvents] = useState([]);
 
-    useEffect(() => {
-        fetchProfile();
-    }, []);
-
-    const fetchProfile = async () => {
+    const fetchProfile = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -49,10 +38,62 @@ const StudentProfile = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [navigate]);
 
-    const handleDelete = (indexToRemove) => {
-        setSavedEvents(prev => prev.filter((_, i) => i !== indexToRemove));
+    const fetchSavedEvents = useCallback(async () => {
+        try {
+            const token = localStorage.getItem('token');
+            console.log('📥 Fetching saved/RSVP events...');
+            
+            const response = await fetch(`${API_BASE_URL}/events/rsvp`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Saved events:', data);
+                setSavedEvents(data);
+            } else {
+                console.error('❌ Failed to fetch saved events');
+            }
+        } catch (err) {
+            console.error('Error fetching saved events:', err);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchProfile();
+        fetchSavedEvents();
+    }, [fetchProfile, fetchSavedEvents]);
+
+    const handleRemoveRsvp = async (eventId) => {
+        if (!window.confirm('Are you sure you want to remove this event?')) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE_URL}/events/${eventId}/rsvp`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                console.log('✅ RSVP removed');
+                // Refresh the saved events list
+                fetchSavedEvents();
+            } else {
+                alert('Failed to remove event');
+            }
+        } catch (err) {
+            console.error('Error removing RSVP:', err);
+            alert('Failed to remove event');
+        }
     };
 
     const getInitials = (name) => {
@@ -150,6 +191,47 @@ const StudentProfile = () => {
                     </div>
                 </div>
 
+                {/* Action Buttons */}
+                <div style={{
+                    display: 'flex',
+                    gap: '15px',
+                    marginTop: '20px',
+                    marginBottom: '20px'
+                }}>
+                    <button 
+                        onClick={() => navigate('/student/profile/edit')}
+                        style={{
+                            flex: 1,
+                            padding: '14px 24px',
+                            borderRadius: '10px',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            color: 'white',
+                            border: 'none'
+                        }}
+                    >
+                        Edit Profile
+                    </button>
+                    <button 
+                        onClick={() => navigate('/student/dashboard')}
+                        style={{
+                            flex: 1,
+                            padding: '14px 24px',
+                            borderRadius: '10px',
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            background: 'white',
+                            color: '#667eea',
+                            border: '2px solid #667eea'
+                        }}
+                    >
+                        Back to Dashboard
+                    </button>
+                </div>
+
                 {/* Resume Section */}
                 <div className="resume-container">
                     <h3>My Resume</h3>
@@ -170,7 +252,7 @@ const StudentProfile = () => {
                         ) : (
                             <button
                                 className="resume-button"
-                                onClick={() => navigate('/student/update-resume')}
+                                onClick={() => navigate('/student/resume')}
                             >
                                 Upload Resume
                             </button>
@@ -209,44 +291,36 @@ const StudentProfile = () => {
                 {/* Saved Events Section */}
                 <div className="saved-events-container">
                     <h3>Saved Events</h3>
-                    <div className="saved-events-slider">
-                        {savedEvents.map((event, index) => (
-                            <div key={index} className="event-card">
-                                <div className="event-name">{event.name}</div>
-                                <div className="event-organizer">{event.organizer}</div>
-                                <div className="event-actions">
-                                    <button
-                                        className="view-btn"
-                                        onClick={() => navigate(event.link)}
-                                    >
-                                        View
-                                    </button>
-                                    <button
-                                        className="delete-btn"
-                                        onClick={() => handleDelete(index)}
-                                    >
-                                        Remove
-                                    </button>
+                    {savedEvents.length > 0 ? (
+                        <div className="saved-events-slider">
+                            {savedEvents.map((event) => (
+                                <div key={event.id} className="event-card">
+                                    <div className="event-name">{event.title}</div>
+                                    <div className="event-organizer">
+                                        {event.employer?.company_name || 'Company'}
+                                    </div>
+                                    <div className="event-actions">
+                                        <button
+                                            className="view-btn"
+                                            onClick={() => navigate(`/student/events/${event.id}`)}
+                                        >
+                                            View
+                                        </button>
+                                        <button
+                                            className="delete-btn"
+                                            onClick={() => handleRemoveRsvp(event.id)}
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="back-button-container">
-                    <button 
-                        onClick={() => navigate('/student/profile/edit')}  // ✅ FIXED
-                        className="edit-profile-button"
-                    >
-                        Edit Profile
-                    </button>
-                    <button 
-                        onClick={() => navigate('/student/dashboard')} 
-                        className="back-button"
-                    >
-                        Back to Dashboard
-                    </button>
+                            ))}
+                        </div>
+                    ) : (
+                        <p style={{ color: '#666', fontSize: '14px', textAlign: 'center', padding: '20px 0' }}>
+                            No saved events yet. Browse events and RSVP to see them here!
+                        </p>
+                    )}
                 </div>
             </div>
         </div>

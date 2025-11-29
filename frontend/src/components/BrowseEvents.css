@@ -7,14 +7,16 @@
 .browse-header {
     max-width: 1200px;
     margin: 0 auto 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
+    position: relative;
 }
 
-.back-button {
+.back-button-wrapper {
     display: flex;
+    justify-content: center;
+}
+
+.browse-back-button {
+    display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 10px 20px;
@@ -28,7 +30,7 @@
     transition: all 0.3s ease;
 }
 
-.back-button:hover {
+.browse-back-button:hover {
     background: #f0f4ff;
 }
 
@@ -37,6 +39,9 @@
     align-items: center;
     gap: 10px;
     color: #667eea;
+    position: absolute;
+    right: 0;
+    top: 0;
 }
 
 .filter-select {
@@ -250,15 +255,16 @@
 
     .browse-header {
         flex-direction: column;
-        align-items: stretch;
+        align-items: center;
+        gap: 15px;
     }
 
-    .back-button {
-        width: 100%;
+    .browse-back-button {
         justify-content: center;
     }
 
     .filter-section {
+        position: static;
         justify-content: center;
     }
 
