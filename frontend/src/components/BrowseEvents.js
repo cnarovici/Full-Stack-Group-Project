@@ -149,9 +149,11 @@ const BrowseEvents = () => {
     return (
         <div className="browse-events-page">
             <div className="browse-header">
-                <button className="back-button" onClick={() => navigate('/student/dashboard')}>
-                    <FaArrowLeft /> Back to Dashboard
-                </button>
+                <div className="back-button-wrapper">
+                    <button className="browse-back-button" onClick={() => navigate('/student/dashboard')}>
+                        <FaArrowLeft /> Back to Dashboard
+                    </button>
+                </div>
 
                 <div className="filter-section">
                     <FaFilter />
