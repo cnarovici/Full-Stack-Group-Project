@@ -340,16 +340,20 @@
     background: #f5f5f5;
 }
 
-.send-button {
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
+.modal-content .send-button,
+.modal-actions .send-button {
+    padding: 10px 20px !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
     cursor: pointer;
     transition: all 0.3s ease;
+    white-space: nowrap;
+    width: auto !important;
+    height: auto !important;
 }
 
 .send-button:hover:not(:disabled) {

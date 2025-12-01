@@ -1,163 +1,276 @@
-# Logistics  
+# CareerConnect
 
-**Q1:** At what time in the week would your group be available to meet online?  
-**Example:**  
-*We are available to meet online on weekends from 12pm-8pm (12-2pm Saturday + Sunday), as well as from 4pm-6pm on Fridays.*  
-*Our weekly meeting will be Thursday 11am-12pm.*  
+A full-stack career fair platform that connects students with employers through events, job opportunities, and direct messaging.
 
-**Answer:** 
-We are available to meet online on weekends from 4pm-8pm, Tuesday and Thursday from 7pm-10pm, Mondays + Wednesday 5-8pm, and Friday 12pm-8pm.
-Our weekly meeting will be Wednesday 5pm-6pm or 6pm-7pm.
+## 📋 Table of Contents
 
----
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Running the Application](#running-the-application)
+- [Project Structure](#project-structure)
+- [API Endpoints](#api-endpoints)
 
-# Timeline: Weekly Meeting Goals  
+## Overview
 
-**Q2:** What is your goals that your group want to achieve in each weekly meeting?  
-**Example:**  
-*Prior to 3/13: Weekly Meeting we will plan out some preliminary info/idea for the project itself ahead of the scheduled meeting like which data source/API and data structures we will use in our backend. We will browse [the given list of public APIs for inspiration](https://github.com/public-apis/public-apis).*  
+CareerConnect is a comprehensive career fair management platform designed for universities and organizations. It enables students to discover career events, connect with employers, and manage their professional profiles. Employers can create and manage events, view student applicants, and communicate directly with potential candidates.
 
-*During week of 3/25: Work on the project rough draft itself to make a functioning project with data input, data structure usage, and processing into output on the frontend.*  
+## Features
 
-*Prior to 4/17: Meet together weekly to target project weakpoints/bugs and possibly visit office hours to get guidance if the progress feels weak.*  
+### For Students
+- **User Authentication** - Secure registration and login system
+- **Profile Management** - Create and edit profiles with skills, job preferences, school, and major
+- **Resume Upload** - Upload resumes via file upload or URL link
+- **Event Discovery** - Browse all career fair events with filtering options
+- **Smart Recommendations** - Personalized event recommendations based on skills and preferences using a topological sort algorithm
+- **RSVP System** - Register for events and track saved events
+- **Messaging** - Direct communication with employers after RSVPing to their events
+- **Search** - Autocomplete search functionality for finding events
 
-**Answer:**  
-Each weekly meeting based on the milestones, we will discuss the project scope and tasks. After discussing we will split the work and work on respective branches, and then meet once more to code review. However during this week, we will discuss project ideas and finalize the brainstorming for the end product. We will heavily emphasize accessibility, sustainability, community, social impact for the public benefit. (10/1)The weeks of October will be weekly code reviews and work assignments for Milestone 3 and further Milestones.
+### For Employers
+- **Company Profiles** - Create and manage company information
+- **Event Management** - Create, edit, and delete career fair events
+- **Applicant Tracking** - View students who have RSVP'd to events
+- **Messaging** - Communicate with interested students
+- **Event Analytics** - Track event engagement and attendance
 
----
+## Tech Stack
 
-# Communication  
+### Frontend
+- **React** - UI framework
+- **React Router** - Client-side routing
+- **CSS3** - Styling with custom components
 
-**Q3a:** How can your group communicate when doing the Full Stack Group Project?  
-**Q3b:** What are the usernames of each group member on that platform?  
-**Q3c:** What is your group’s expected response time to messages?  
+### Backend
+- **Flask** - Python web framework
+- **SQLAlchemy** - ORM for database management
+- **SQLite** - Database
+- **JWT** - JSON Web Tokens for authentication
+- **Flask-CORS** - Cross-origin resource sharing
 
-**Example:**  
-*We will use Discord for communication*  
+## Prerequisites
 
-*Usernames:*  
-*Justin - ghostmechanic*  
-*Claudia - ninth.py*  
-*Mauricio - itsperi*  
-*Our expected response time will be within 12 hours.*  
+Before running this application, make sure you have the following installed:
 
-**Answer:**  
-Q3a: We will communicate via text and Discord. We will use Discord for weekly team meetings and text otherwise.  
-Q3b:  
-     Man Nguyen: minhman180299  
-     Tommy Kang: esFoopy  
-     Cosmin Narovici: netdino  
-     Viet Ho: ImMQs  
-Q3c: 12-24 hour response times
+- **Node.js** (v14 or higher) - [Download](https://nodejs.org/)
+- **Python** (v3.8 or higher) - [Download](https://python.org/)
+- **pip** - Python package manager (comes with Python)
+- **npm** - Node package manager (comes with Node.js)
 
----
+## Installation
 
-# Norms  
+### 1. Clone the Repository
 
-**Q4a:** How will your group handle situations when there is conflict in your group?  
-**Q4b:** How will your group handle situations when a member is not contributing enough?  
+```bash
+git clone <repository-url>
+cd Full-Stack-Group-Project
+```
 
-**Example:**  
-*If there is a disagreement on direction, we will resolve it with a unanimous vote.*  
-*If team members do not pull their weight, the team will politely remind them of their duties.*  
-*If they continue to not pull their weight, then they will get another warning and a chance to start being more productive.*  
+### 2. Install Frontend Dependencies
 
-**Answer:**  
-**a:** If there is a conflict in our group, we will take a day or two to further discuss the issue and end up doing the conclusion which more people agree with.  
-**b:** If someone is not contributing enough, we will call them out on not doing the work required for the group and try to come up with a way they can pick up the slack. If this doesn't work, bringing it up to the TA or professor would be the next step.
+Navigate to the frontend directory and install dependencies:
 
----
+```bash
+cd frontend
+npm install
+npm install react-router-dom
+```
 
-# Roles  
+### 3. Install Backend Dependencies
 
-**Q5:** How will your group divide your role in the Group Project?  
+Navigate to the backend directory and install Python packages:
 
-**Example:**  
-*Mauricio - Backend, Justin - Project Lead, Claudia - Frontend.*  
+```bash
+cd backend
+pip install Flask==3.0.0 Flask-SQLAlchemy==3.1.1 Flask-CORS==4.0.0 PyJWT==2.8.0 Werkzeug==3.0.1
+```
 
-**Answer:**
-Our group will divide the roles as follows:
+## Running the Application
 
-- Cosmin will serve as the Project Lead, overseeing coordination and overall project direction.
+You need to run both the backend and frontend servers simultaneously. Open 2 terminals and run the backend then frontend
 
-- Tommy and Viet contribute to the Backend Development.
+### 1. Start the Backend Server
 
-- Man and Cosmin will handle the Frontend Development.
+Open a terminal, navigate to the backend directory, and run:
 
+```bash
+cd backend
+python app.py
+```
 
----
+The backend server will start on `http://localhost:5001`
 
-# Tech Stacks
+You should see output similar to:
+```
+✅ Database ready!
+✅ Search indexes initialized!
 
-**Q6:** Which tech stacks will your group use? (Django + React or Flask + React)
+============================================================
+📋 REGISTERED API ROUTES:
+============================================================
+  /api/auth/register                       [POST]
+  /api/auth/login                          [POST]
+  /api/events                              [GET, POST]
+  ...
+============================================================
 
-**Answer:**: We will use Flask + Reacj to develope our project.
+ * Running on http://0.0.0.0:5001
+```
 
----
-# Full Stack Group Project Track  
----
+### 2. Start the Frontend Server
 
-# Track 1: Tackling Generative AI Consequences
-**Problem 1:** 
+Open a new terminal, navigate to the frontend directory, and run:
 
-**Solution 1:** 
+```bash
+cd frontend
+npm start
+```
 
----
+The frontend will start on `http://localhost:3000`
 
-# Track 2: Technology for Public Goods 
+### 3. Access the Application
 
-**Problem 2:**  
-Students especially risiing seniors and juniors often attend career fairs and explore and walk around aimlessly hoping for jobs and applications. Those who do not have access to career fairs also mass apply for jobs
-and aimlessly and as a result both parties get inefficient returns on offers and interviews. They also tend to be underprepared, unsure of what these companies are looking for.
+Open your browser and navigate to:
+```
+http://localhost:3000
+```
 
-**Solution 2:**  
-A practical project is to build a simple app that allows job searchers and students register a profile with resumes and information, and then register for events that businesses and companies will post. Recommendations can also pop up based on user preferences and job interests, allowing for a more tailored job search with in person seminars allowing for better connection with said companies and better preparation. This allows for the student community and job searchers to also build, effectively building a stronger rising workforce that is informed and prepared. As a result the social impact improves as well, as companies will be met with a better upcoming workforce and greated talent pool, all of which is accessible through a convenient app by both parties. Both parties can conveniently reach out and interact, seeing if there is a "good fit." Lastly, due to a clean and simple app, students and businesses alike will continue to sustain the app usage as the in person connection and search can be set up quickly and remotely. 
+## Project Structure
 
-**Problem 3:**  
-People tend to get very caught up in their daily life and be in a constant state of dehydration.
+```
+Full-Stack-Group-Project/
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── StudentDashboard.js
+│   │   │   ├── StudentProfile.js
+│   │   │   ├── StudentEditProfile.js
+│   │   │   ├── StudentUpdateResume.js
+│   │   │   ├── BrowseEvents.js
+│   │   │   ├── ViewEvent.js
+│   │   │   ├── EmployerDashboard.js
+│   │   │   ├── EmployerProfile.js
+│   │   │   ├── EventApplicants.js
+│   │   │   ├── ConversationThread.js
+│   │   │   ├── Login.js
+│   │   │   ├── Register.js
+│   │   │   └── ... (CSS files)
+│   │   ├── utils/
+│   │   │   └── auth.js
+│   │   ├── App.js
+│   │   └── index.js
+│   └── package.json
+│
+├── backend/
+│   ├── app.py              # Flask application entry point
+│   ├── routes.py           # API route definitions
+│   ├── models.py           # Database models
+│   ├── trie.py             # Search index implementation
+│   ├── topological_sort.py # Recommendation algorithm
+│   ├── uploads/
+│   │   └── resumes/        # Uploaded resume files
+|   ├── _pycache_           # Pycache files auto generated to run faster
+│   ├── migrate_db.py       # Migrates database in case of database errors such as messaging or unfound accounts/events 
+│   └── instance/
+│       └── career_fair.db  # SQLite database
+|    
+│
+└── README.md
+```
 
-**Solution 3:**  
-A good approach to this would be a mobile app which would have a daily water intake set based on the recommended amount of water that should be consumed which would send out reminders throughout the day to drink more water. The program being an app makes the most sense as people will always have their phones on them. The notifications can be customized to the user's preferences and there can also be a calculator to give you a target water intake to make it so that you have something to work to. And as a person drinks water throughout the day, they can log it to put the notifications back on a timer.
+## API Endpoints
 
-# Track 3: Creative Coding and Cultural Expression
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register a new user |
+| POST | `/api/auth/login` | Login and receive JWT token |
 
-**Idea - Story - Inspiration 4:**
+### Student Profile
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/profile/student` | Get student profile |
+| PUT | `/api/profile/student` | Update student profile |
+| POST | `/api/profile/student/resume` | Upload resume file |
 
-**Implementation 4:**
+### Employer Profile
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/profile/employer` | Get employer profile |
+| PUT | `/api/profile/employer` | Update employer profile |
 
-**Idea - Story - Inspiration 5:**
+### Events
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/events` | Get all events |
+| POST | `/api/events` | Create new event (employer only) |
+| GET | `/api/events/:id` | Get event details |
+| PUT | `/api/events/:id` | Update event (employer only) |
+| DELETE | `/api/events/:id` | Delete event (employer only) |
+| GET | `/api/events/recommendations` | Get personalized recommendations |
 
-**Implementation 5:**
+### RSVP
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/events/:id/rsvp` | RSVP to an event |
+| DELETE | `/api/events/:id/rsvp` | Cancel RSVP |
+| GET | `/api/events/:id/rsvp/status` | Check RSVP status |
+| GET | `/api/events/rsvp` | Get all RSVP'd events |
 
+### Messages
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/messages` | Get all conversations |
+| POST | `/api/messages` | Send a new message |
+| GET | `/api/messages/:id` | Get conversation thread |
 
-# Idea Finalization
+### Search
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/search/autocomplete` | Search events with autocomplete |
 
-**From 5 project ideas you have above, please choose one of the project that you are going with for the rest of the semester. Explain why you are going with that project**  
-**Answer:**  
-We will be choosing to work on problem 2 which will address student needs with a job board. We are choosing this project because it is an issue that we all relate to and would like to try to create a solution that may be useful to ourselves and our fellow students that share the same struggles.
+## Usage Tips
 
-# Extra Credit (Only do this if you are done with Idea Finalization)
+1. **First Time Setup**: Register as either a student or employer to create your account
+2. **Students**: Complete your profile with skills and job preferences to get better event recommendations
+3. **Employers**: Create events with relevant tags to attract matching students
+4. **Messaging**: Students must RSVP to an event before they can message the employer
 
-## Database Design
+## Troubleshooting
 
-**Q1: What database are you using for your project (SQLite, PostgreSQL, noSQL, MongoDB,...), and why do you choose it?**
+### Common Issues
 
-**Q2: How will database be helpful to your project? How will you design your database to support your application features?**
+**Port already in use:**
+```bash
+# Kill process on port 5001 (backend)
+lsof -ti:5001 | xargs kill -9
 
-## Third-Party API Integration
+# Kill process on port 3000 (frontend)
+lsof -ti:3000 | xargs kill -9
 
-**Q3: Which third-party API(s) will you integrate into your project? What data will you pull from the API(s), and how will you use it in your application?**
+# Neither work (generally Mac specifc issue, disable airplay and kill all Elmedia processes)
+killall -9 Elmedia
+```
 
-**Q4: Does your API key has limitations such as rate limits or downtime? How are you going to deal with that?**
+**Database issues:**
+Delete the `instance/` folder in the backend directory and restart the server to create a fresh database, or migrate database
+```bash
+python migrate_db.py
+```
 
-## Authentication and Security
+**Module not found errors:**
+Make sure you've installed all dependencies:
+```bash
+# Frontend
+cd frontend && npm install
 
-**Q5: What authentication method will you use (e.g., username/password, OAuth, JWT)?**
+# Backend
+cd backend && pip install Flask==3.0.0 Flask-SQLAlchemy==3.1.1 Flask-CORS==4.0.0 PyJWT==2.8.0 Werkzeug==3.0.1
+```
 
-**Q6: How will you store and protect sensitive user data (e.g., passwords, tokens)?**
+## License
 
-## Deployment
-
-**Q7: Where will you deploy your project (e.g., Heroku, AWS, Render)? How will you manage environment variables and secrets during deployment?**
-
-**Q8: How will you ensure your deployment is reliable and easy to update?**
+This project was created for CS 473 at the University of Illinois at Chicago.
