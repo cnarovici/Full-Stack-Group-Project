@@ -64,7 +64,7 @@ Before running this application, make sure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/cnarovici/Full-Stack-Group-Project.git
 cd Full-Stack-Group-Project
 ```
 
