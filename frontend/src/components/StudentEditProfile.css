@@ -1,15 +1,9 @@
 .edit-profile-container {
     min-height: 100vh;
-<<<<<<< HEAD
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 40px 20px;
 
     
-=======
-    background-color: #f5f7fa;
-    padding: 0;
-    margin: 0;
->>>>>>> branch2
 }
 
 .edit-profile-card {
@@ -26,7 +20,6 @@
     font-weight: 700;
 }
 
-<<<<<<< HEAD
 .back-button {
     padding: 12px 28px;
     width: 100%;          /* makes it stretch full width of its container */
@@ -89,18 +82,6 @@
 }
 
 .alert {
-=======
-.loading-state {
-    color: #667eea;
-    font-size: 24px;
-    text-align: center;
-    padding: 100px 20px;
-}
-
-.error-message {
-    background: #fee2e2;
-    color: #dc2626;
->>>>>>> branch2
     padding: 12px 16px;
     border-radius: 8px;
     margin-bottom: 20px;
@@ -269,13 +250,5 @@
     .form-actions {
         flex-direction: column;
     }
-<<<<<<< HEAD
 }
-=======
-    
-    .tag-button {
-        padding: 6px 12px;
-        font-size: 13px;
-    }
-}
->>>>>>> branch2
+
